@@ -17,6 +17,25 @@ interface VexorPaymentBody {
   };
 }
 
+interface VexorPortalBody {
+  customerId: string;
+  returnUrl: string;
+}
+
+interface VexorSubscriptionBody {
+  name: string;
+  description?: string;
+  interval: string;
+  price: number;
+  currency: string;
+  successRedirect: string;
+  failureRedirect?: string;
+  customer?: {
+    email: string;
+    name?: string;
+  };
+}
+
 // Define the structure for payment response
 interface VexorPaymentResponse {
   message: string;
@@ -27,42 +46,49 @@ interface VexorPaymentResponse {
   };
 }
 
+// Define the structure for Vexor constructor parameters
+interface VexorParams {
+  publishableKey: string;
+  projectId: string;
+  secretKey?: string;
+}
+
 // Main Vexor class for handling payments
 class Vexor {
   // Singleton instance of Vexor
   private static instance: Vexor | null = null;
-  private apiKey: string;
-  private apiSecret?: string;
+  private publishableKey: string;
+  private secretKey?: string;
   private projectId: string;
   private apiUrl: string = "http://localhost:3000/api";
 
-  // Constructor to initialize Vexor with an API key
-  constructor(apiKey: string, projectId: string, apiSecret?: string) {
-    this.apiKey = apiKey;
-    this.apiSecret = apiSecret;
-    this.projectId = projectId;
+  // Constructor to initialize Vexor with parameters object
+  constructor(params: VexorParams) {
+    this.publishableKey = params.publishableKey;
+    this.secretKey = params.secretKey;
+    this.projectId = params.projectId;
   }
 
   // Create a Vexor instance using environment variables
   static fromEnv(): Vexor {
     if (!Vexor.instance) {
-      const apiKey = process.env.NEXT_PUBLIC_VEXOR_KEY;
-      const apiSecret = process.env.VEXOR_SECRET_KEY;
+      const publishableKey = process.env.NEXT_PUBLIC_VEXOR_KEY;
+      const secretKey = process.env.VEXOR_SECRET_KEY;
       const projectId = process.env.NEXT_PUBLIC_VEXOR_PROJECT;
-      if (!apiKey) {
+      if (!publishableKey) {
         throw new Error('Missing NEXT_PUBLIC_VEXOR_KEY environment variable');
       }
       if (!projectId) {
         throw new Error('Missing NEXT_PUBLIC_VEXOR_PROJECT environment variable');
       }
-      Vexor.instance = new Vexor(apiKey, projectId, apiSecret);
+      Vexor.instance = new Vexor({ publishableKey, projectId, secretKey });
     }
     return Vexor.instance;
   }
 
-  // Create a Vexor instance with a provided API key
-  static init(apiKey: string, projectId: string, apiSecret: string): Vexor {
-    return new Vexor(apiKey, projectId, apiSecret);
+  // Create a Vexor instance with provided parameters
+  static init(params: VexorParams): Vexor {
+    return new Vexor(params);
   }
 
   // ============================================
@@ -104,7 +130,7 @@ class Vexor {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-vexor-key': this.apiKey,
+        'x-vexor-key': this.publishableKey,
         'x-vexor-platform': platform,
         'x-vexor-project-id': this.projectId,
       },
@@ -129,7 +155,7 @@ class Vexor {
 
 
   // ============================================
-  // vexor.webhook     [START]
+  // vexor.webhook                        [START]
   // ============================================
   /**
      * Webhook method with platform-specific shortcuts.
@@ -182,7 +208,7 @@ class Vexor {
       throw new Error('Unsupported payment platform or missing signature header');
     }
 
-    if (!this.apiSecret) {
+    if (!this.secretKey) {
       throw new Error('Missing VEXOR_SECRET_KEY environment variable');
     }
 
@@ -194,7 +220,7 @@ class Vexor {
     });
 
     // Add Vexor-specific headers
-    forwardRequest.headers.set('x-vexor-key', this.apiSecret);
+    forwardRequest.headers.set('x-vexor-key', this.secretKey);
     forwardRequest.headers.set('x-vexor-platform', platform);
     forwardRequest.headers.set('x-vexor-project-id', this.projectId);
 
@@ -214,10 +240,142 @@ class Vexor {
     return data;
   }
 
+  // ============================================
+  // vexor.webhook                          [END]
+  // ============================================
+
+
+  // ========================================================
+  // vexor.subscribe and vexor.subscribe.platform     [START]
+  // ========================================================
+  /**
+   * Subscription method with platform-specific shortcuts.
+   * @type {Object}
+   * @property {Function} mercadopago - Shortcut for MercadoPago subscriptions.
+   * @property {Function} stripe - Shortcut for Stripe subscriptions.
+   * @property {Function} paypal - Shortcut for PayPal subscriptions.
+   * 
+   * @example
+   * // Generic usage
+   * vexor.subscribe({ platform: 'mercadopago', body });
+   * 
+   * // Platform-specific shortcut
+   * vexor.subscribe.mercadopago({ body });
+   * 
+   * @description
+   * Facilitates simple subscription scenarios for various payment platforms.
+   */
+  subscribe = Object.assign(
+    // Generic subscription method
+    (params: { platform: SupportedVexorPlatform } & VexorSubscriptionBody) =>
+      this.createSubscription(params.platform, params),
+    // Platform-specific subscription methods
+    {
+      mercadopago: (body: VexorSubscriptionBody) => this.createSubscription('mercadopago', body),
+      stripe: (body: VexorSubscriptionBody) => this.createSubscription('stripe', body),
+      paypal: (body: VexorSubscriptionBody) => this.createSubscription('paypal', body),
+    }
+  );
+
+  // Private method to create a checkout session
+  private async createSubscription(platform: SupportedVexorPlatform, body: VexorSubscriptionBody): Promise<VexorPaymentResponse> {
+    // Send a POST request to the Vexor API
+    const response = await fetch(`${this.apiUrl}/subscriptions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-vexor-key': this.publishableKey,
+        'x-vexor-platform': platform,
+        'x-vexor-project-id': this.projectId,
+      },
+      body: JSON.stringify(body),
+    });
+
+    // Parse the JSON response
+    const data = await response.json();
+
+    // Check if the request was successful
+    if (!response.ok) {
+      const errorMessage = data.message || 'An unknown error occurred';
+      throw new Error(`Payment request failed: ${errorMessage}`);
+    }
+
+    // Return the payment response data
+    return data;
+  }
+  // ========================================================
+  // vexor.subscribe and vexor.subscribe.platform       [END]
+  // ========================================================
+
+  // ========================================================
+  // vexor.portal and vexor.portal.platform     [START]
+  // ========================================================
+  /**
+   * Billing portal method with platform-specific shortcuts.
+   * @type {Object}
+   * @property {Function} mercadopago - Shortcut for MercadoPago portals.
+   * @property {Function} stripe - Shortcut for Stripe portals.
+   * @property {Function} paypal - Shortcut for PayPal portals.
+   * 
+   * @example
+   * // Generic usage
+   * vexor.subscribe({ platform: 'mercadopago', body });
+   * 
+   * // Platform-specific shortcut
+   * vexor.subscribe.mercadopago({ body });
+   * 
+   * @description
+   * Facilitates simple subscription scenarios for various payment platforms.
+   */
+  portal = Object.assign(
+    // Generic portal method
+    (params: { platform: SupportedVexorPlatform } & VexorPortalBody) =>
+      this.createPortal(params.platform, params),
+    // Platform-specific portal methods
+    {
+      mercadopago: (body: VexorPortalBody) => this.createPortal('mercadopago', body),
+      stripe: (body: VexorPortalBody) => this.createPortal('stripe', body),
+      paypal: (body: VexorPortalBody) => this.createPortal('paypal', body),
+    }
+  );
+
+  // Private method to create a checkout session
+  private async createPortal(platform: SupportedVexorPlatform, body: VexorPortalBody): Promise<VexorPaymentResponse> {
+    // Send a POST request to the Vexor API
+    const response = await fetch(`${this.apiUrl}/portals`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-vexor-key': this.publishableKey,
+        'x-vexor-platform': platform,
+        'x-vexor-project-id': this.projectId,
+      },
+      body: JSON.stringify(body),
+    });
+
+    // Parse the JSON response
+    const data = await response.json();
+
+    // Check if the request was successful
+    if (!response.ok) {
+      const errorMessage = data.message || 'An unknown error occurred';
+      throw new Error(`Payment request failed: ${errorMessage}`);
+    }
+
+    // Return the payment response data
+    return data;
+  }
+  // ========================================================
+  // vexor.subscribe and vexor.subscribe.platform       [END]
+  // ========================================================
+
+
+
+
 }
 
 // Export the Vexor class as a named export instead of default
 export { Vexor };
 
 // Also export the types and interfaces
-export type { SupportedVexorPlatform, VexorPaymentBody, VexorPaymentResponse };
+export type { SupportedVexorPlatform, VexorPaymentBody, VexorPaymentResponse, VexorParams };

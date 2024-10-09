@@ -202,7 +202,7 @@ __export(src_exports, {
 module.exports = __toCommonJS(src_exports);
 // src/methods.ts
 var _Vexor = /*#__PURE__*/ function() {
-    function _Vexor(apiKey, projectId, apiSecret) {
+    function _Vexor(params) {
         var _this = this;
         _class_call_check(this, _Vexor);
         this.apiUrl = "http://localhost:3000/api";
@@ -244,7 +244,7 @@ var _Vexor = /*#__PURE__*/ function() {
         // vexor.pay and vexor.pay.platform       [END]
         // ============================================
         // ============================================
-        // vexor.webhook     [START]
+        // vexor.webhook                        [START]
         // ============================================
         /**
        * Webhook method with platform-specific shortcuts.
@@ -277,9 +277,83 @@ var _Vexor = /*#__PURE__*/ function() {
                 return _this.handleWebhook(req);
             }
         });
-        this.apiKey = apiKey;
-        this.apiSecret = apiSecret;
-        this.projectId = projectId;
+        // ============================================
+        // vexor.webhook                          [END]
+        // ============================================
+        // ========================================================
+        // vexor.subscribe and vexor.subscribe.platform     [START]
+        // ========================================================
+        /**
+     * Subscription method with platform-specific shortcuts.
+     * @type {Object}
+     * @property {Function} mercadopago - Shortcut for MercadoPago subscriptions.
+     * @property {Function} stripe - Shortcut for Stripe subscriptions.
+     * @property {Function} paypal - Shortcut for PayPal subscriptions.
+     * 
+     * @example
+     * // Generic usage
+     * vexor.subscribe({ platform: 'mercadopago', body });
+     * 
+     * // Platform-specific shortcut
+     * vexor.subscribe.mercadopago({ body });
+     * 
+     * @description
+     * Facilitates simple subscription scenarios for various payment platforms.
+     */ this.subscribe = Object.assign(// Generic subscription method
+        function(params) {
+            return _this.createSubscription(params.platform, params);
+        }, // Platform-specific subscription methods
+        {
+            mercadopago: function(body) {
+                return _this.createSubscription("mercadopago", body);
+            },
+            stripe: function(body) {
+                return _this.createSubscription("stripe", body);
+            },
+            paypal: function(body) {
+                return _this.createSubscription("paypal", body);
+            }
+        });
+        // ========================================================
+        // vexor.subscribe and vexor.subscribe.platform       [END]
+        // ========================================================
+        // ========================================================
+        // vexor.portal and vexor.portal.platform     [START]
+        // ========================================================
+        /**
+     * Billing portal method with platform-specific shortcuts.
+     * @type {Object}
+     * @property {Function} mercadopago - Shortcut for MercadoPago portals.
+     * @property {Function} stripe - Shortcut for Stripe portals.
+     * @property {Function} paypal - Shortcut for PayPal portals.
+     * 
+     * @example
+     * // Generic usage
+     * vexor.subscribe({ platform: 'mercadopago', body });
+     * 
+     * // Platform-specific shortcut
+     * vexor.subscribe.mercadopago({ body });
+     * 
+     * @description
+     * Facilitates simple subscription scenarios for various payment platforms.
+     */ this.portal = Object.assign(// Generic portal method
+        function(params) {
+            return _this.createPortal(params.platform, params);
+        }, // Platform-specific portal methods
+        {
+            mercadopago: function(body) {
+                return _this.createPortal("mercadopago", body);
+            },
+            stripe: function(body) {
+                return _this.createPortal("stripe", body);
+            },
+            paypal: function(body) {
+                return _this.createPortal("paypal", body);
+            }
+        });
+        this.publishableKey = params.publishableKey;
+        this.secretKey = params.secretKey;
+        this.projectId = params.projectId;
     }
     _create_class(_Vexor, [
         {
@@ -298,7 +372,7 @@ var _Vexor = /*#__PURE__*/ function() {
                                         method: "POST",
                                         headers: {
                                             "Content-Type": "application/json",
-                                            "x-vexor-key": _this.apiKey,
+                                            "x-vexor-key": _this.publishableKey,
                                             "x-vexor-platform": platform,
                                             "x-vexor-project-id": _this.projectId
                                         },
@@ -355,7 +429,7 @@ var _Vexor = /*#__PURE__*/ function() {
                                 if (!platform) {
                                     throw new Error("Unsupported payment platform or missing signature header");
                                 }
-                                if (!_this.apiSecret) {
+                                if (!_this.secretKey) {
                                     throw new Error("Missing VEXOR_SECRET_KEY environment variable");
                                 }
                                 forwardRequest = new Request("".concat(_this.apiUrl, "/webhooks/").concat(platform, "?").concat(queryParams.toString()), {
@@ -363,7 +437,7 @@ var _Vexor = /*#__PURE__*/ function() {
                                     headers: new Headers(headers),
                                     body: body
                                 });
-                                forwardRequest.headers.set("x-vexor-key", _this.apiSecret);
+                                forwardRequest.headers.set("x-vexor-key", _this.secretKey);
                                 forwardRequest.headers.set("x-vexor-platform", platform);
                                 forwardRequest.headers.set("x-vexor-project-id", _this.projectId);
                                 return [
@@ -390,6 +464,94 @@ var _Vexor = /*#__PURE__*/ function() {
                     });
                 })();
             }
+        },
+        {
+            key: "createSubscription",
+            value: // Private method to create a checkout session
+            function createSubscription(platform, body) {
+                var _this = this;
+                return _async_to_generator(function() {
+                    var response, data, errorMessage;
+                    return _ts_generator(this, function(_state) {
+                        switch(_state.label){
+                            case 0:
+                                return [
+                                    4,
+                                    fetch("".concat(_this.apiUrl, "/subscriptions"), {
+                                        method: "POST",
+                                        headers: {
+                                            "Content-Type": "application/json",
+                                            "x-vexor-key": _this.publishableKey,
+                                            "x-vexor-platform": platform,
+                                            "x-vexor-project-id": _this.projectId
+                                        },
+                                        body: JSON.stringify(body)
+                                    })
+                                ];
+                            case 1:
+                                response = _state.sent();
+                                return [
+                                    4,
+                                    response.json()
+                                ];
+                            case 2:
+                                data = _state.sent();
+                                if (!response.ok) {
+                                    errorMessage = data.message || "An unknown error occurred";
+                                    throw new Error("Payment request failed: ".concat(errorMessage));
+                                }
+                                return [
+                                    2,
+                                    data
+                                ];
+                        }
+                    });
+                })();
+            }
+        },
+        {
+            key: "createPortal",
+            value: // Private method to create a checkout session
+            function createPortal(platform, body) {
+                var _this = this;
+                return _async_to_generator(function() {
+                    var response, data, errorMessage;
+                    return _ts_generator(this, function(_state) {
+                        switch(_state.label){
+                            case 0:
+                                return [
+                                    4,
+                                    fetch("".concat(_this.apiUrl, "/portals"), {
+                                        method: "POST",
+                                        headers: {
+                                            "Content-Type": "application/json",
+                                            "x-vexor-key": _this.publishableKey,
+                                            "x-vexor-platform": platform,
+                                            "x-vexor-project-id": _this.projectId
+                                        },
+                                        body: JSON.stringify(body)
+                                    })
+                                ];
+                            case 1:
+                                response = _state.sent();
+                                return [
+                                    4,
+                                    response.json()
+                                ];
+                            case 2:
+                                data = _state.sent();
+                                if (!response.ok) {
+                                    errorMessage = data.message || "An unknown error occurred";
+                                    throw new Error("Payment request failed: ".concat(errorMessage));
+                                }
+                                return [
+                                    2,
+                                    data
+                                ];
+                        }
+                    });
+                })();
+            }
         }
     ], [
         {
@@ -397,25 +559,29 @@ var _Vexor = /*#__PURE__*/ function() {
             value: // Create a Vexor instance using environment variables
             function fromEnv() {
                 if (!_Vexor.instance) {
-                    var apiKey = process.env.NEXT_PUBLIC_VEXOR_KEY;
-                    var apiSecret = process.env.VEXOR_SECRET_KEY;
+                    var publishableKey = process.env.NEXT_PUBLIC_VEXOR_KEY;
+                    var secretKey = process.env.VEXOR_SECRET_KEY;
                     var projectId = process.env.NEXT_PUBLIC_VEXOR_PROJECT;
-                    if (!apiKey) {
+                    if (!publishableKey) {
                         throw new Error("Missing NEXT_PUBLIC_VEXOR_KEY environment variable");
                     }
                     if (!projectId) {
                         throw new Error("Missing NEXT_PUBLIC_VEXOR_PROJECT environment variable");
                     }
-                    _Vexor.instance = new _Vexor(apiKey, projectId, apiSecret);
+                    _Vexor.instance = new _Vexor({
+                        publishableKey: publishableKey,
+                        projectId: projectId,
+                        secretKey: secretKey
+                    });
                 }
                 return _Vexor.instance;
             }
         },
         {
             key: "init",
-            value: // Create a Vexor instance with a provided API key
-            function init(apiKey, projectId, apiSecret) {
-                return new _Vexor(apiKey, projectId, apiSecret);
+            value: // Create a Vexor instance with provided parameters
+            function init(params) {
+                return new _Vexor(params);
             }
         }
     ]);

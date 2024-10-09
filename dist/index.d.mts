@@ -12,6 +12,23 @@ interface VexorPaymentBody {
         failureRedirect?: string;
     };
 }
+interface VexorPortalBody {
+    customerId: string;
+    returnUrl: string;
+}
+interface VexorSubscriptionBody {
+    name: string;
+    description?: string;
+    interval: string;
+    price: number;
+    currency: string;
+    successRedirect: string;
+    failureRedirect?: string;
+    customer?: {
+        email: string;
+        name?: string;
+    };
+}
 interface VexorPaymentResponse {
     message: string;
     result: {
@@ -20,15 +37,20 @@ interface VexorPaymentResponse {
         raw: any;
     };
 }
+interface VexorParams {
+    publishableKey: string;
+    projectId: string;
+    secretKey?: string;
+}
 declare class Vexor {
     private static instance;
-    private apiKey;
-    private apiSecret?;
+    private publishableKey;
+    private secretKey?;
     private projectId;
     private apiUrl;
-    constructor(apiKey: string, projectId: string, apiSecret?: string);
+    constructor(params: VexorParams);
     static fromEnv(): Vexor;
-    static init(apiKey: string, projectId: string, apiSecret: string): Vexor;
+    static init(params: VexorParams): Vexor;
     /**
      * Pay method with platform-specific shortcuts.
      * @type {Object}
@@ -77,6 +99,56 @@ declare class Vexor {
         paypal: (req: Request) => Promise<any>;
     };
     private handleWebhook;
+    /**
+     * Subscription method with platform-specific shortcuts.
+     * @type {Object}
+     * @property {Function} mercadopago - Shortcut for MercadoPago subscriptions.
+     * @property {Function} stripe - Shortcut for Stripe subscriptions.
+     * @property {Function} paypal - Shortcut for PayPal subscriptions.
+     *
+     * @example
+     * // Generic usage
+     * vexor.subscribe({ platform: 'mercadopago', body });
+     *
+     * // Platform-specific shortcut
+     * vexor.subscribe.mercadopago({ body });
+     *
+     * @description
+     * Facilitates simple subscription scenarios for various payment platforms.
+     */
+    subscribe: ((params: {
+        platform: SupportedVexorPlatform;
+    } & VexorSubscriptionBody) => Promise<VexorPaymentResponse>) & {
+        mercadopago: (body: VexorSubscriptionBody) => Promise<VexorPaymentResponse>;
+        stripe: (body: VexorSubscriptionBody) => Promise<VexorPaymentResponse>;
+        paypal: (body: VexorSubscriptionBody) => Promise<VexorPaymentResponse>;
+    };
+    private createSubscription;
+    /**
+     * Billing portal method with platform-specific shortcuts.
+     * @type {Object}
+     * @property {Function} mercadopago - Shortcut for MercadoPago portals.
+     * @property {Function} stripe - Shortcut for Stripe portals.
+     * @property {Function} paypal - Shortcut for PayPal portals.
+     *
+     * @example
+     * // Generic usage
+     * vexor.subscribe({ platform: 'mercadopago', body });
+     *
+     * // Platform-specific shortcut
+     * vexor.subscribe.mercadopago({ body });
+     *
+     * @description
+     * Facilitates simple subscription scenarios for various payment platforms.
+     */
+    portal: ((params: {
+        platform: SupportedVexorPlatform;
+    } & VexorPortalBody) => Promise<VexorPaymentResponse>) & {
+        mercadopago: (body: VexorPortalBody) => Promise<VexorPaymentResponse>;
+        stripe: (body: VexorPortalBody) => Promise<VexorPaymentResponse>;
+        paypal: (body: VexorPortalBody) => Promise<VexorPaymentResponse>;
+    };
+    private createPortal;
 }
 
-export { type SupportedVexorPlatform, Vexor, type VexorPaymentBody, type VexorPaymentResponse };
+export { type SupportedVexorPlatform, Vexor, type VexorParams, type VexorPaymentBody, type VexorPaymentResponse };
