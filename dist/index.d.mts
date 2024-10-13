@@ -13,7 +13,8 @@ interface VexorPaymentBody {
     };
 }
 interface VexorPortalBody {
-    customerId: string;
+    customerId?: string;
+    orderId?: string;
     returnUrl: string;
 }
 interface VexorSubscriptionBody {
@@ -35,6 +36,13 @@ interface VexorPaymentResponse {
         payment_url: string;
         identifier: string;
         raw: any;
+    };
+}
+interface VexorPortalResponse {
+    message: string;
+    result: {
+        portal_url: string;
+        raw?: any;
     };
 }
 interface VexorParams {
@@ -143,12 +151,12 @@ declare class Vexor {
      */
     portal: ((params: {
         platform: SupportedVexorPlatform;
-    } & VexorPortalBody) => Promise<VexorPaymentResponse>) & {
-        mercadopago: (body: VexorPortalBody) => Promise<VexorPaymentResponse>;
-        stripe: (body: VexorPortalBody) => Promise<VexorPaymentResponse>;
-        paypal: (body: VexorPortalBody) => Promise<VexorPaymentResponse>;
+    } & VexorPortalBody) => Promise<VexorPortalResponse>) & {
+        mercadopago: (body: VexorPortalBody) => Promise<VexorPortalResponse>;
+        stripe: (body: VexorPortalBody) => Promise<VexorPortalResponse>;
+        paypal: (body: VexorPortalBody) => Promise<VexorPortalResponse>;
     };
     private createPortal;
 }
 
-export { type SupportedVexorPlatform, Vexor, type VexorParams, type VexorPaymentBody, type VexorPaymentResponse };
+export { type SupportedVexorPlatform, Vexor, type VexorParams, type VexorPaymentBody, type VexorPaymentResponse, type VexorPortalBody, type VexorPortalResponse };

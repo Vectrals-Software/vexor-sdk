@@ -18,7 +18,8 @@ interface VexorPaymentBody {
 }
 
 interface VexorPortalBody {
-  customerId: string;
+  customerId?: string;
+  orderId?: string;
   returnUrl: string;
 }
 
@@ -43,6 +44,15 @@ interface VexorPaymentResponse {
     payment_url: string;
     identifier: string;
     raw: any;
+  };
+}
+
+// Define the structure for portal response
+interface VexorPortalResponse {
+  message: string;
+  result: {
+    portal_url: string;
+    raw?: any;
   };
 }
 
@@ -224,17 +234,21 @@ class Vexor {
     forwardRequest.headers.set('x-vexor-platform', platform);
     forwardRequest.headers.set('x-vexor-project-id', this.projectId);
 
+    // Supported events
+    const supportedEvents = []
+
     // Send the request to the Vexor API
     const response = await fetch(forwardRequest);
 
     // Parse the JSON response
     const data = await response.json();
 
-    // Check if the request was successful
+  /*   // Check if the request was successful
     if (!response.ok) {
-      const errorMessage = data.message || 'An unknown error occurred';
-      throw new Error(`Webhook request failed: ${errorMessage}`);
-    }
+      const statusCode = response.status;
+      const errorMessage = data.error?.message || data.message || data.error.toString() || 'An unknown error occurred';
+      throw new Error(`Webhook request failed with code ${statusCode} - ${errorMessage}`);
+    } */
 
     // Return the webhook response data
     return data;
@@ -340,7 +354,7 @@ class Vexor {
   );
 
   // Private method to create a checkout session
-  private async createPortal(platform: SupportedVexorPlatform, body: VexorPortalBody): Promise<VexorPaymentResponse> {
+  private async createPortal(platform: SupportedVexorPlatform, body: VexorPortalBody): Promise<VexorPortalResponse> {
     // Send a POST request to the Vexor API
     const response = await fetch(`${this.apiUrl}/portals`, {
       method: 'POST',
@@ -378,4 +392,11 @@ class Vexor {
 export { Vexor };
 
 // Also export the types and interfaces
-export type { SupportedVexorPlatform, VexorPaymentBody, VexorPaymentResponse, VexorParams };
+export type { 
+  SupportedVexorPlatform, 
+  VexorPaymentBody, 
+  VexorPaymentResponse, 
+  VexorParams, 
+  VexorPortalResponse, 
+  VexorPortalBody 
+};

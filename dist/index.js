@@ -406,7 +406,7 @@ var _Vexor = /*#__PURE__*/ function() {
             function handleWebhook(req) {
                 var _this = this;
                 return _async_to_generator(function() {
-                    var _headers_get, headers, body, url, queryParams, platform, forwardRequest, response, data, errorMessage;
+                    var _headers_get, headers, body, url, queryParams, platform, forwardRequest, supportedEvents, response, data;
                     return _ts_generator(this, function(_state) {
                         switch(_state.label){
                             case 0:
@@ -440,6 +440,7 @@ var _Vexor = /*#__PURE__*/ function() {
                                 forwardRequest.headers.set("x-vexor-key", _this.secretKey);
                                 forwardRequest.headers.set("x-vexor-platform", platform);
                                 forwardRequest.headers.set("x-vexor-project-id", _this.projectId);
+                                supportedEvents = [];
                                 return [
                                     4,
                                     fetch(forwardRequest)
@@ -452,10 +453,6 @@ var _Vexor = /*#__PURE__*/ function() {
                                 ];
                             case 3:
                                 data = _state.sent();
-                                if (!response.ok) {
-                                    errorMessage = data.message || "An unknown error occurred";
-                                    throw new Error("Webhook request failed: ".concat(errorMessage));
-                                }
                                 return [
                                     2,
                                     data
