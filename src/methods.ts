@@ -1,3 +1,9 @@
+import { createCheckout, vexorPay } from "./methods/pay";
+import { handleWebhook, vexorWebhook } from "./methods/webhook";
+import { createSubscription, vexorSubscribe } from "./methods/subscribe";
+import { createPortal, vexorPortal } from "./methods/portal";
+import { createConnect, createConnectAuth, createConnectPay, createConnectDashboard, vexorConnect } from "./methods/connect";
+
 // Define the supported payment platforms
 type SupportedVexorPlatform = 'mercadopago' | 'stripe' | 'paypal';
 
@@ -63,6 +69,52 @@ interface VexorParams {
   secretKey?: string;
 }
 
+interface VexorConnectBody {
+  redirectUrl: string;
+  countryCode?: string;
+  express?: boolean;
+}
+
+interface VexorConnectAuthBody {
+  redirectUrl: string;
+  mp_state_key: string;
+  mp_code: string;
+}
+
+interface VexorConnectPayBody {
+  redirectUrl: string;
+  seller: {
+    access_token: string;
+    fee?: string | number;
+  };
+  items: Array<{
+    title: string;
+    description: string;
+    quantity: number;
+    unit_price: number;
+  }>;
+  options?: {
+    successRedirect?: string;
+    pendingRedirect?: string;
+    failureRedirect?: string;
+  };
+}
+
+interface VexorConnectDashboardBody {
+  connectedAccountId: string;
+}
+
+interface VexorConnectResponse {
+  message: string;
+  result: {
+    connect_url?: string;
+    payment_url?: string;
+    dashboard_url?: string;
+    identifier: string;
+    raw: any;
+  };
+}
+
 // Main Vexor class for handling payments
 class Vexor {
   // Singleton instance of Vexor
@@ -77,6 +129,11 @@ class Vexor {
     this.publishableKey = params.publishableKey;
     this.secretKey = params.secretKey;
     this.projectId = params.projectId;
+    this.pay = vexorPay(this);
+    this.webhook = vexorWebhook(this);
+    this.subscribe = vexorSubscribe(this);
+    this.portal = vexorPortal(this);
+    this.connect = vexorConnect(this);
   }
 
   // Create a Vexor instance using environment variables
@@ -104,60 +161,28 @@ class Vexor {
   // ============================================
   // vexor.pay and vexor.pay.platform     [START]
   // ============================================
+
   /**
-   * Pay method with platform-specific shortcuts.
-   * @type {Object}
-   * @property {Function} mercadopago - Shortcut for MercadoPago payments.
-   * @property {Function} stripe - Shortcut for Stripe payments.
-   * @property {Function} paypal - Shortcut for PayPal payments.
-   * 
-   * @example
-   * // Generic usage
-   * vexor.pay({ platform: 'mercadopago', items: [...] });
-   * 
-   * // Platform-specific shortcut
-   * vexor.pay.mercadopago({ items: [...] });
-   * 
-   * @description
-   * Facilitates simple checkout scenarios for various payment platforms.
-   */
-  pay = Object.assign(
-    // Generic payment method
-    (params: { platform: SupportedVexorPlatform } & VexorPaymentBody) =>
-      this.createCheckout(params.platform, params),
-    // Platform-specific payment methods
-    {
-      mercadopago: (body: VexorPaymentBody) => this.createCheckout('mercadopago', body),
-      stripe: (body: VexorPaymentBody) => this.createCheckout('stripe', body),
-      paypal: (body: VexorPaymentBody) => this.createCheckout('paypal', body),
-    }
-  );
+ * Pay method with platform-specific shortcuts.
+ * @type {Object}
+ * @property {Function} mercadopago - Shortcut for MercadoPago payments.
+ * @property {Function} stripe - Shortcut for Stripe payments.
+ * @property {Function} paypal - Shortcut for PayPal payments.
+ * 
+ * @example
+ * // Generic usage
+ * vexor.pay({ platform: 'mercadopago', items: [...] });
+ * 
+ * // Platform-specific shortcut
+ * vexor.pay.mercadopago({ items: [...] });
+ * 
+ * @description
+ * Facilitates simple checkout scenarios for various payment platforms.
+ */
 
-  // Private method to create a checkout session
-  private async createCheckout(platform: SupportedVexorPlatform, body: VexorPaymentBody): Promise<VexorPaymentResponse> {
-    // Send a POST request to the Vexor API
-    const response = await fetch(`${this.apiUrl}/payments`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-vexor-key': this.publishableKey,
-        'x-vexor-platform': platform,
-        'x-vexor-project-id': this.projectId,
-      },
-      body: JSON.stringify(body),
-    });
-
-    // Parse the JSON response
-    const data = await response.json();
-
-    // Check if the request was successful
-    if (!response.ok) {
-      const errorMessage = data.message || 'An unknown error occurred';
-      throw new Error(`Payment request failed: ${errorMessage}`);
-    }
-
-    // Return the payment response data
-    return data;
+  pay: ReturnType<typeof vexorPay>
+  createCheckout(platform: SupportedVexorPlatform, body: VexorPaymentBody): Promise<VexorPaymentResponse> {
+    return createCheckout(this, platform, body);
   }
   // ============================================
   // vexor.pay and vexor.pay.platform       [END]
@@ -184,76 +209,11 @@ class Vexor {
      * @description
      * Facilitates webhook handling for various payment platforms.
      */
-  webhook = Object.assign(
-    // Generic webhook method
-    (req: Request) => this.handleWebhook(req),
-    // Platform-specific webhook methods
-    {
-      mercadopago: (req: Request) => this.handleWebhook(req),
-      stripe: (req: Request) => this.handleWebhook(req),
-      paypal: (req: Request) => this.handleWebhook(req),
-    }
-  );
+  webhook: ReturnType<typeof vexorWebhook>;
 
-  // Private method to handle webhooks
-  private async handleWebhook(req: Request): Promise<any> {
-    const headers = req.headers;
-    const body = await req.text();
-
-    const url = new URL(req.url);
-    const queryParams = new URLSearchParams(url.searchParams);
-    
-    // Detect the platform from the request headers
-    let platform: SupportedVexorPlatform | undefined;
-
-    if (headers.get('paypal-transmission-id')) {
-      platform = 'paypal';
-    } else if (headers.get('stripe-signature')) {
-      platform = 'stripe';
-    } else if (headers.get('referer')?.includes('mercadopago')) {
-      platform = 'mercadopago';
-    }
-
-    if (!platform) {
-      throw new Error('Unsupported payment platform or missing signature header');
-    }
-
-    if (!this.secretKey) {
-      throw new Error('Missing VEXOR_SECRET_KEY environment variable');
-    }
-
-    // Create a new request object with the same method, headers, and body
-    const forwardRequest = new Request(`${this.apiUrl}/webhooks/${platform}?${queryParams.toString()}`, {
-      method: req.method,
-      headers: new Headers(headers),
-      body: body,
-    });
-
-    // Add Vexor-specific headers
-    forwardRequest.headers.set('x-vexor-key', this.secretKey);
-    forwardRequest.headers.set('x-vexor-platform', platform);
-    forwardRequest.headers.set('x-vexor-project-id', this.projectId);
-
-    // Supported events
-    const supportedEvents = []
-
-    // Send the request to the Vexor API
-    const response = await fetch(forwardRequest);
-
-    // Parse the JSON response
-    const data = await response.json();
-
-  /*   // Check if the request was successful
-    if (!response.ok) {
-      const statusCode = response.status;
-      const errorMessage = data.error?.message || data.message || data.error.toString() || 'An unknown error occurred';
-      throw new Error(`Webhook request failed with code ${statusCode} - ${errorMessage}`);
-    } */
-
-    // Return the webhook response data
-    return data;
+  handleWebhook(req: Request): Promise<any> {
+    return handleWebhook(this, req);
   }
-
   // ============================================
   // vexor.webhook                          [END]
   // ============================================
@@ -279,43 +239,10 @@ class Vexor {
    * @description
    * Facilitates simple subscription scenarios for various payment platforms.
    */
-  subscribe = Object.assign(
-    // Generic subscription method
-    (params: { platform: SupportedVexorPlatform } & VexorSubscriptionBody) =>
-      this.createSubscription(params.platform, params),
-    // Platform-specific subscription methods
-    {
-      mercadopago: (body: VexorSubscriptionBody) => this.createSubscription('mercadopago', body),
-      stripe: (body: VexorSubscriptionBody) => this.createSubscription('stripe', body),
-      paypal: (body: VexorSubscriptionBody) => this.createSubscription('paypal', body),
-    }
-  );
+  subscribe: ReturnType<typeof vexorSubscribe>;
 
-  // Private method to create a checkout session
-  private async createSubscription(platform: SupportedVexorPlatform, body: VexorSubscriptionBody): Promise<VexorPaymentResponse> {
-    // Send a POST request to the Vexor API
-    const response = await fetch(`${this.apiUrl}/subscriptions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-vexor-key': this.publishableKey,
-        'x-vexor-platform': platform,
-        'x-vexor-project-id': this.projectId,
-      },
-      body: JSON.stringify(body),
-    });
-
-    // Parse the JSON response
-    const data = await response.json();
-
-    // Check if the request was successful
-    if (!response.ok) {
-      const errorMessage = data.message || 'An unknown error occurred';
-      throw new Error(`Payment request failed: ${errorMessage}`);
-    }
-
-    // Return the payment response data
-    return data;
+  createSubscription(platform: SupportedVexorPlatform, body: VexorSubscriptionBody): Promise<VexorPaymentResponse> {
+    return createSubscription(this, platform, body);
   }
   // ========================================================
   // vexor.subscribe and vexor.subscribe.platform       [END]
@@ -333,57 +260,65 @@ class Vexor {
    * 
    * @example
    * // Generic usage
-   * vexor.subscribe({ platform: 'mercadopago', body });
+   * vexor.portal({ platform: 'mercadopago', body });
    * 
    * // Platform-specific shortcut
-   * vexor.subscribe.mercadopago({ body });
+   * vexor.portal.mercadopago({ body });
    * 
    * @description
-   * Facilitates simple subscription scenarios for various payment platforms.
+   * Facilitates creation of billing portals for various payment platforms.
    */
-  portal = Object.assign(
-    // Generic portal method
-    (params: { platform: SupportedVexorPlatform } & VexorPortalBody) =>
-      this.createPortal(params.platform, params),
-    // Platform-specific portal methods
-    {
-      mercadopago: (body: VexorPortalBody) => this.createPortal('mercadopago', body),
-      stripe: (body: VexorPortalBody) => this.createPortal('stripe', body),
-      paypal: (body: VexorPortalBody) => this.createPortal('paypal', body),
-    }
-  );
+  portal: ReturnType<typeof vexorPortal>;
 
-  // Private method to create a checkout session
-  private async createPortal(platform: SupportedVexorPlatform, body: VexorPortalBody): Promise<VexorPortalResponse> {
-    // Send a POST request to the Vexor API
-    const response = await fetch(`${this.apiUrl}/portals`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-vexor-key': this.publishableKey,
-        'x-vexor-platform': platform,
-        'x-vexor-project-id': this.projectId,
-      },
-      body: JSON.stringify(body),
-    });
-
-    // Parse the JSON response
-    const data = await response.json();
-
-    // Check if the request was successful
-    if (!response.ok) {
-      const errorMessage = data.message || 'An unknown error occurred';
-      throw new Error(`Payment request failed: ${errorMessage}`);
-    }
-
-    // Return the payment response data
-    return data;
+  createPortal(platform: SupportedVexorPlatform, body: VexorPortalBody): Promise<VexorPortalResponse> {
+    return createPortal(this, platform, body);
   }
   // ========================================================
-  // vexor.subscribe and vexor.subscribe.platform       [END]
+  // vexor.portal and vexor.portal.platform       [END]
   // ========================================================
 
+  // ========================================================
+  // vexor.connect and related methods              [START]
+  // ========================================================
+  /**
+   * Connect method with platform-specific shortcuts.
+   * @type {Object}
+   * @property {Function} mercadopago - Shortcut for MercadoPago connect.
+   * @property {Function} stripe - Shortcut for Stripe connect.
+   * @property {Function} auth - Shortcut for MercadoPago auth.
+   * @property {Object} pay - Object with payment methods for connected accounts.
+   * @property {Function} dashboard - Shortcut for Stripe dashboard link.
+   * 
+   * @example
+   * // Generic usage
+   * vexor.connect({ platform: 'stripe', redirectUrl: 'www.example.com', countryCode: 'US', express: true });
+   * 
+   * // Platform-specific shortcut
+   * vexor.connect.mercadopago({ redirectUrl: 'www.example.com', countryCode: 'AR' });
+   * 
+   * @description
+   * Facilitates account connection for various payment platforms.
+   */
+  connect: ReturnType<typeof vexorConnect>;
 
+  createConnect(platform: SupportedVexorPlatform, body: VexorConnectBody): Promise<VexorConnectResponse> {
+    return createConnect(this, platform, body);
+  }
+
+  createConnectAuth(body: VexorConnectAuthBody): Promise<VexorConnectResponse> {
+    return createConnectAuth(this, body);
+  }
+
+  createConnectPay(platform: SupportedVexorPlatform, body: VexorConnectPayBody): Promise<VexorConnectResponse> {
+    return createConnectPay(this, platform, body);
+  }
+
+  createConnectDashboard(body: VexorConnectDashboardBody): Promise<VexorConnectResponse> {
+    return createConnectDashboard(this, body);
+  }
+  // ========================================================
+  // vexor.connect and related methods                [END]
+  // ========================================================
 
 
 }
@@ -392,11 +327,17 @@ class Vexor {
 export { Vexor };
 
 // Also export the types and interfaces
-export type { 
-  SupportedVexorPlatform, 
-  VexorPaymentBody, 
-  VexorPaymentResponse, 
-  VexorParams, 
-  VexorPortalResponse, 
-  VexorPortalBody 
+export type {
+  SupportedVexorPlatform,
+  VexorPaymentBody,
+  VexorSubscriptionBody,
+  VexorPaymentResponse,
+  VexorParams,
+  VexorPortalResponse,
+  VexorPortalBody,
+  VexorConnectBody,
+  VexorConnectAuthBody,
+  VexorConnectPayBody,
+  VexorConnectDashboardBody,
+  VexorConnectResponse
 };
