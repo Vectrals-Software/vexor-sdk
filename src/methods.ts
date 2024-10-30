@@ -122,7 +122,7 @@ class Vexor {
   private publishableKey: string;
   private secretKey?: string;
   private projectId: string;
-  private apiUrl: string = "http://localhost:3000/api";
+  private apiUrl: string = "https://www.vexorpay.com/api";
 
   // Constructor to initialize Vexor with parameters object
   constructor(params: VexorParams) {
@@ -139,14 +139,14 @@ class Vexor {
   // Create a Vexor instance using environment variables
   static fromEnv(): Vexor {
     if (!Vexor.instance) {
-      const publishableKey = process.env.NEXT_PUBLIC_VEXOR_KEY;
+      const publishableKey = process.env.NEXT_PUBLIC_VEXOR_PUBLISHABLE_KEY || process.env.VEXOR_PUBLISHABLE_KEY;
       const secretKey = process.env.VEXOR_SECRET_KEY;
-      const projectId = process.env.NEXT_PUBLIC_VEXOR_PROJECT;
+      const projectId = process.env.NEXT_PUBLIC_VEXOR_PROJECT || process.env.VEXOR_PROJECT;
       if (!publishableKey) {
-        throw new Error('Missing NEXT_PUBLIC_VEXOR_KEY environment variable');
+        throw new Error('Missing environment variable for publishable key');
       }
       if (!projectId) {
-        throw new Error('Missing NEXT_PUBLIC_VEXOR_PROJECT environment variable');
+        throw new Error('Missing environment variable for project ID');
       }
       Vexor.instance = new Vexor({ publishableKey, projectId, secretKey });
     }

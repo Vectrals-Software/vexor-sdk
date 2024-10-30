@@ -28,6 +28,21 @@ declare const vexorPortal: (vexor: any) => ((params: {
     paypal: (body: VexorPortalBody) => any;
 };
 
+declare const vexorConnect: (vexor: any) => ((params: {
+    platform: SupportedVexorPlatform;
+} & VexorConnectBody) => any) & {
+    mercadopago: (body: VexorConnectBody) => any;
+    stripe: (body: VexorConnectBody) => any;
+    auth: (body: VexorConnectAuthBody) => any;
+    pay: ((params: {
+        platform: SupportedVexorPlatform;
+    } & VexorConnectPayBody) => any) & {
+        mercadopago: (body: VexorConnectPayBody) => any;
+        stripe: (body: VexorConnectPayBody) => any;
+    };
+    dashboard: (body: VexorConnectDashboardBody) => any;
+};
+
 type SupportedVexorPlatform = 'mercadopago' | 'stripe' | 'paypal';
 interface VexorPaymentBody {
     items: Array<{
@@ -79,6 +94,47 @@ interface VexorParams {
     publishableKey: string;
     projectId: string;
     secretKey?: string;
+}
+interface VexorConnectBody {
+    redirectUrl: string;
+    countryCode?: string;
+    express?: boolean;
+}
+interface VexorConnectAuthBody {
+    redirectUrl: string;
+    mp_state_key: string;
+    mp_code: string;
+}
+interface VexorConnectPayBody {
+    redirectUrl: string;
+    seller: {
+        access_token: string;
+        fee?: string | number;
+    };
+    items: Array<{
+        title: string;
+        description: string;
+        quantity: number;
+        unit_price: number;
+    }>;
+    options?: {
+        successRedirect?: string;
+        pendingRedirect?: string;
+        failureRedirect?: string;
+    };
+}
+interface VexorConnectDashboardBody {
+    connectedAccountId: string;
+}
+interface VexorConnectResponse {
+    message: string;
+    result: {
+        connect_url?: string;
+        payment_url?: string;
+        dashboard_url?: string;
+        identifier: string;
+        raw: any;
+    };
 }
 declare class Vexor {
     private static instance;
@@ -165,6 +221,30 @@ declare class Vexor {
      */
     portal: ReturnType<typeof vexorPortal>;
     createPortal(platform: SupportedVexorPlatform, body: VexorPortalBody): Promise<VexorPortalResponse>;
+    /**
+     * Connect method with platform-specific shortcuts.
+     * @type {Object}
+     * @property {Function} mercadopago - Shortcut for MercadoPago connect.
+     * @property {Function} stripe - Shortcut for Stripe connect.
+     * @property {Function} auth - Shortcut for MercadoPago auth.
+     * @property {Object} pay - Object with payment methods for connected accounts.
+     * @property {Function} dashboard - Shortcut for Stripe dashboard link.
+     *
+     * @example
+     * // Generic usage
+     * vexor.connect({ platform: 'stripe', redirectUrl: 'www.example.com', countryCode: 'US', express: true });
+     *
+     * // Platform-specific shortcut
+     * vexor.connect.mercadopago({ redirectUrl: 'www.example.com', countryCode: 'AR' });
+     *
+     * @description
+     * Facilitates account connection for various payment platforms.
+     */
+    connect: ReturnType<typeof vexorConnect>;
+    createConnect(platform: SupportedVexorPlatform, body: VexorConnectBody): Promise<VexorConnectResponse>;
+    createConnectAuth(body: VexorConnectAuthBody): Promise<VexorConnectResponse>;
+    createConnectPay(platform: SupportedVexorPlatform, body: VexorConnectPayBody): Promise<VexorConnectResponse>;
+    createConnectDashboard(body: VexorConnectDashboardBody): Promise<VexorConnectResponse>;
 }
 
-export { type SupportedVexorPlatform, Vexor, type VexorParams, type VexorPaymentBody, type VexorPaymentResponse, type VexorPortalBody, type VexorPortalResponse, type VexorSubscriptionBody };
+export { type SupportedVexorPlatform, Vexor, type VexorConnectAuthBody, type VexorConnectBody, type VexorConnectDashboardBody, type VexorConnectPayBody, type VexorConnectResponse, type VexorParams, type VexorPaymentBody, type VexorPaymentResponse, type VexorPortalBody, type VexorPortalResponse, type VexorSubscriptionBody };

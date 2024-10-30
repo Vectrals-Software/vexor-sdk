@@ -402,12 +402,219 @@ function _createPortal() {
     });
     return _createPortal.apply(this, arguments);
 }
+// src/methods/connect.ts
+var vexorConnect = function(vexor) {
+    return Object.assign(// Generic connect method
+    function(params) {
+        return vexor.createConnect(params.platform, params);
+    }, // Platform-specific connect methods
+    {
+        mercadopago: function(body) {
+            return vexor.createConnect("mercadopago", body);
+        },
+        stripe: function(body) {
+            return vexor.createConnect("stripe", body);
+        },
+        auth: function(body) {
+            return vexor.createConnectAuth(body);
+        },
+        pay: Object.assign(function(params) {
+            return vexor.createConnectPay(params.platform, params);
+        }, {
+            mercadopago: function(body) {
+                return vexor.createConnectPay("mercadopago", body);
+            },
+            stripe: function(body) {
+                return vexor.createConnectPay("stripe", body);
+            }
+        }),
+        dashboard: function(body) {
+            return vexor.createConnectDashboard(body);
+        }
+    });
+};
+function createConnect(vexor, platform, body) {
+    return _createConnect.apply(this, arguments);
+}
+function _createConnect() {
+    _createConnect = _async_to_generator(function(vexor, platform, body) {
+        var response, data, errorMessage;
+        return _ts_generator(this, function(_state) {
+            switch(_state.label){
+                case 0:
+                    return [
+                        4,
+                        fetch("".concat(vexor.apiUrl, "/connect"), {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "x-vexor-key": vexor.secretKey,
+                                "x-vexor-platform": platform,
+                                "x-vexor-project-id": vexor.projectId,
+                                "x-vexor-action": "connect"
+                            },
+                            body: JSON.stringify(body)
+                        })
+                    ];
+                case 1:
+                    response = _state.sent();
+                    return [
+                        4,
+                        response.json()
+                    ];
+                case 2:
+                    data = _state.sent();
+                    if (!response.ok) {
+                        errorMessage = data.message || "An unknown error occurred";
+                        throw new Error("Connect request failed: ".concat(errorMessage));
+                    }
+                    return [
+                        2,
+                        data
+                    ];
+            }
+        });
+    });
+    return _createConnect.apply(this, arguments);
+}
+function createConnectAuth(vexor, body) {
+    return _createConnectAuth.apply(this, arguments);
+}
+function _createConnectAuth() {
+    _createConnectAuth = _async_to_generator(function(vexor, body) {
+        var response, data, errorMessage;
+        return _ts_generator(this, function(_state) {
+            switch(_state.label){
+                case 0:
+                    return [
+                        4,
+                        fetch("".concat(vexor.apiUrl, "/connect"), {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "x-vexor-key": vexor.secretKey,
+                                "x-vexor-platform": "mercadopago",
+                                "x-vexor-project-id": vexor.projectId,
+                                "x-vexor-action": "get_credentials"
+                            },
+                            body: JSON.stringify(body)
+                        })
+                    ];
+                case 1:
+                    response = _state.sent();
+                    return [
+                        4,
+                        response.json()
+                    ];
+                case 2:
+                    data = _state.sent();
+                    if (!response.ok) {
+                        errorMessage = data.message || "An unknown error occurred";
+                        throw new Error("Connect auth request failed: ".concat(errorMessage));
+                    }
+                    return [
+                        2,
+                        data
+                    ];
+            }
+        });
+    });
+    return _createConnectAuth.apply(this, arguments);
+}
+function createConnectPay(vexor, platform, body) {
+    return _createConnectPay.apply(this, arguments);
+}
+function _createConnectPay() {
+    _createConnectPay = _async_to_generator(function(vexor, platform, body) {
+        var response, data, errorMessage;
+        return _ts_generator(this, function(_state) {
+            switch(_state.label){
+                case 0:
+                    return [
+                        4,
+                        fetch("".concat(vexor.apiUrl, "/connect"), {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "x-vexor-key": vexor.secretKey,
+                                "x-vexor-platform": platform,
+                                "x-vexor-project-id": vexor.projectId,
+                                "x-vexor-action": "create_payment"
+                            },
+                            body: JSON.stringify(body)
+                        })
+                    ];
+                case 1:
+                    response = _state.sent();
+                    return [
+                        4,
+                        response.json()
+                    ];
+                case 2:
+                    data = _state.sent();
+                    if (!response.ok) {
+                        errorMessage = data.message || "An unknown error occurred";
+                        throw new Error("Connect pay request failed: ".concat(errorMessage));
+                    }
+                    return [
+                        2,
+                        data
+                    ];
+            }
+        });
+    });
+    return _createConnectPay.apply(this, arguments);
+}
+function createConnectDashboard(vexor, body) {
+    return _createConnectDashboard.apply(this, arguments);
+}
+function _createConnectDashboard() {
+    _createConnectDashboard = _async_to_generator(function(vexor, body) {
+        var response, data, errorMessage;
+        return _ts_generator(this, function(_state) {
+            switch(_state.label){
+                case 0:
+                    return [
+                        4,
+                        fetch("".concat(vexor.apiUrl, "/connect"), {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "x-vexor-key": vexor.secretKey,
+                                "x-vexor-platform": "stripe",
+                                "x-vexor-project-id": vexor.projectId,
+                                "x-vexor-action": "get_dashboard_link"
+                            },
+                            body: JSON.stringify(body)
+                        })
+                    ];
+                case 1:
+                    response = _state.sent();
+                    return [
+                        4,
+                        response.json()
+                    ];
+                case 2:
+                    data = _state.sent();
+                    if (!response.ok) {
+                        errorMessage = data.message || "An unknown error occurred";
+                        throw new Error("Connect dashboard request failed: ".concat(errorMessage));
+                    }
+                    return [
+                        2,
+                        data
+                    ];
+            }
+        });
+    });
+    return _createConnectDashboard.apply(this, arguments);
+}
 // src/methods.ts
 var _Vexor = /*#__PURE__*/ function() {
     "use strict";
     function _Vexor(params) {
         _class_call_check(this, _Vexor);
-        this.apiUrl = "http://localhost:3000/api";
+        this.apiUrl = "https://www.vexorpay.com/api";
         this.publishableKey = params.publishableKey;
         this.secretKey = params.secretKey;
         this.projectId = params.projectId;
@@ -415,6 +622,7 @@ var _Vexor = /*#__PURE__*/ function() {
         this.webhook = vexorWebhook(this);
         this.subscribe = vexorSubscribe(this);
         this.portal = vexorPortal(this);
+        this.connect = vexorConnect(this);
     }
     _create_class(_Vexor, [
         {
@@ -440,6 +648,30 @@ var _Vexor = /*#__PURE__*/ function() {
             value: function createPortal1(platform, body) {
                 return createPortal(this, platform, body);
             }
+        },
+        {
+            key: "createConnect",
+            value: function createConnect1(platform, body) {
+                return createConnect(this, platform, body);
+            }
+        },
+        {
+            key: "createConnectAuth",
+            value: function createConnectAuth1(body) {
+                return createConnectAuth(this, body);
+            }
+        },
+        {
+            key: "createConnectPay",
+            value: function createConnectPay1(platform, body) {
+                return createConnectPay(this, platform, body);
+            }
+        },
+        {
+            key: "createConnectDashboard",
+            value: function createConnectDashboard1(body) {
+                return createConnectDashboard(this, body);
+            }
         }
     ], [
         {
@@ -447,11 +679,11 @@ var _Vexor = /*#__PURE__*/ function() {
             value: // Create a Vexor instance using environment variables
             function fromEnv() {
                 if (!_Vexor.instance) {
-                    var publishableKey = process.env.NEXT_PUBLIC_VEXOR_KEY;
+                    var publishableKey = process.env.NEXT_PUBLIC_VEXOR_PUBLISHABLE_KEY;
                     var secretKey = process.env.VEXOR_SECRET_KEY;
                     var projectId = process.env.NEXT_PUBLIC_VEXOR_PROJECT;
                     if (!publishableKey) {
-                        throw new Error("Missing NEXT_PUBLIC_VEXOR_KEY environment variable");
+                        throw new Error("Missing NEXT_PUBLIC_VEXOR_PUBLISHABLE_KEY environment variable");
                     }
                     if (!projectId) {
                         throw new Error("Missing NEXT_PUBLIC_VEXOR_PROJECT environment variable");
