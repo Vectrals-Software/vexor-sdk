@@ -614,7 +614,7 @@ var _Vexor = /*#__PURE__*/ function() {
     "use strict";
     function _Vexor(params) {
         _class_call_check(this, _Vexor);
-        this.apiUrl = "https://www.vexorpay.com/api";
+        this.apiUrl = "http://localhost:3001/api";
         this.publishableKey = params.publishableKey;
         this.secretKey = params.secretKey;
         this.projectId = params.projectId;
@@ -679,14 +679,14 @@ var _Vexor = /*#__PURE__*/ function() {
             value: // Create a Vexor instance using environment variables
             function fromEnv() {
                 if (!_Vexor.instance) {
-                    var publishableKey = process.env.NEXT_PUBLIC_VEXOR_PUBLISHABLE_KEY;
+                    var publishableKey = process.env.NEXT_PUBLIC_VEXOR_PUBLISHABLE_KEY || process.env.VEXOR_PUBLISHABLE_KEY;
                     var secretKey = process.env.VEXOR_SECRET_KEY;
-                    var projectId = process.env.NEXT_PUBLIC_VEXOR_PROJECT;
+                    var projectId = process.env.NEXT_PUBLIC_VEXOR_PROJECT || process.env.VEXOR_PROJECT;
                     if (!publishableKey) {
-                        throw new Error("Missing NEXT_PUBLIC_VEXOR_PUBLISHABLE_KEY environment variable");
+                        throw new Error("Missing environment variable for publishable key");
                     }
                     if (!projectId) {
-                        throw new Error("Missing NEXT_PUBLIC_VEXOR_PROJECT environment variable");
+                        throw new Error("Missing environment variable for project ID");
                     }
                     _Vexor.instance = new _Vexor({
                         publishableKey: publishableKey,
