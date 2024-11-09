@@ -141,6 +141,8 @@ class Vexor {
   private apiUrl: string = "https://www.vexorpay.com/api";
   //private apiUrl: string = "http://localhost:3000/api";
 
+  // Add custom to the class properties
+  custom: (url: string) => Vexor;
 
   // Constructor to initialize Vexor with parameters object
   constructor(params: VexorParams) {
@@ -153,10 +155,13 @@ class Vexor {
     this.portal = vexorPortal(this);
     this.connect = vexorConnect(this);
     this.refund = vexorRefund(this);
+
+    // Add custom method to the instance
+    this.custom = (url: string) => this.setApiUrl(url);
   }
 
   // Create a Vexor instance using environment variables
-  static fromEnv(): Vexor {
+  static fromEnv(): Vexor & { custom: (url: string) => Vexor } {
     if (!Vexor.instance) {
       const publishableKey = process.env.NEXT_PUBLIC_VEXOR_PUBLISHABLE_KEY || process.env.VEXOR_PUBLISHABLE_KEY;
       const secretKey = process.env.VEXOR_SECRET_KEY;
@@ -169,12 +174,22 @@ class Vexor {
       }
       Vexor.instance = new Vexor({ publishableKey, projectId, secretKey });
     }
-    return Vexor.instance;
+
+    const instance = Vexor.instance as Vexor & { custom: (url: string) => Vexor };
+    instance.custom = function(url: string) {
+      return this.setApiUrl(url);
+    };
+
+    return instance;
   }
 
   // Create a Vexor instance with provided parameters
-  static init(params: VexorParams): Vexor {
-    return new Vexor(params);
+  static init(params: VexorParams): Vexor & { custom: (url: string) => Vexor } {
+    const instance = new Vexor(params) as Vexor & { custom: (url: string) => Vexor };
+    instance.custom = function(url: string) {
+      return this.setApiUrl(url);
+    };
+    return instance;
   }
 
   // ============================================
@@ -360,6 +375,11 @@ class Vexor {
 
   createRefund(platform: SupportedVexorPlatform, body: VexorRefundBody): Promise<VexorRefundResponse> {
     return createRefund(this, platform, body);
+  }
+
+  private setApiUrl(url: string): Vexor {
+    this.apiUrl = url;
+    return this;
   }
 
 }
