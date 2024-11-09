@@ -3,6 +3,7 @@ import { handleWebhook, vexorWebhook } from "./methods/webhook";
 import { createSubscription, vexorSubscribe } from "./methods/subscribe";
 import { createPortal, vexorPortal } from "./methods/portal";
 import { createConnect, createConnectAuth, createConnectPay, createConnectDashboard, vexorConnect } from "./methods/connect";
+import { createRefund, vexorRefund } from "./methods/refund";
 
 // Define the supported payment platforms
 type SupportedVexorPlatform = 'mercadopago' | 'stripe' | 'paypal';
@@ -24,8 +25,7 @@ interface VexorPaymentBody {
 }
 
 interface VexorPortalBody {
-  customerId?: string;
-  orderId?: string;
+  identifier: string;
   returnUrl: string;
 }
 
@@ -46,20 +46,24 @@ interface VexorSubscriptionBody {
 // Define the structure for payment response
 interface VexorPaymentResponse {
   message: string;
-  result: {
-    payment_url: string;
-    identifier: string;
-    raw: any;
-  };
+  payment_url: string;
+  identifier: string;
+  raw: any;
+}
+
+// Define the structure for subscription response
+interface VexorSubscriptionResponse {
+  message: string;
+  payment_url: string;
+  identifier: string;
+  raw: any;
 }
 
 // Define the structure for portal response
 interface VexorPortalResponse {
   message: string;
-  result: {
-    portal_url: string;
-    raw?: any;
-  };
+  portal_url: string;
+  raw?: any;
 }
 
 // Define the structure for Vexor constructor parameters
@@ -115,6 +119,18 @@ interface VexorConnectResponse {
   };
 }
 
+// Add these interfaces with the existing interfaces
+interface VexorRefundBody {
+    identifier: string;
+}
+
+interface VexorRefundResponse {
+    message: string;
+    refund_response: any;
+    identifier: string;
+    error?: any;
+}
+
 // Main Vexor class for handling payments
 class Vexor {
   // Singleton instance of Vexor
@@ -122,7 +138,9 @@ class Vexor {
   private publishableKey: string;
   private secretKey?: string;
   private projectId: string;
-  private apiUrl: string = "http://localhost:3001/api";
+  //private apiUrl: string = "https://www.vexorpay.com/api";
+  private apiUrl: string = "http://localhost:3000/api";
+
 
   // Constructor to initialize Vexor with parameters object
   constructor(params: VexorParams) {
@@ -134,6 +152,7 @@ class Vexor {
     this.subscribe = vexorSubscribe(this);
     this.portal = vexorPortal(this);
     this.connect = vexorConnect(this);
+    this.refund = vexorRefund(this);
   }
 
   // Create a Vexor instance using environment variables
@@ -241,7 +260,7 @@ class Vexor {
    */
   subscribe: ReturnType<typeof vexorSubscribe>;
 
-  createSubscription(platform: SupportedVexorPlatform, body: VexorSubscriptionBody): Promise<VexorPaymentResponse> {
+  createSubscription(platform: SupportedVexorPlatform, body: VexorSubscriptionBody): Promise<VexorSubscriptionResponse> {
     return createSubscription(this, platform, body);
   }
   // ========================================================
@@ -320,6 +339,28 @@ class Vexor {
   // vexor.connect and related methods                [END]
   // ========================================================
 
+  /**
+   * Refund method with platform-specific shortcuts.
+   * @type {Object}
+   * @property {Function} mercadopago - Shortcut for MercadoPago refunds.
+   * @property {Function} stripe - Shortcut for Stripe refunds.
+   * @property {Function} paypal - Shortcut for PayPal refunds.
+   * 
+   * @example
+   * // Generic usage
+   * vexor.refund({ platform: 'mercadopago', paymentId: 'payment_123' });
+   * 
+   * // Platform-specific shortcut
+   * vexor.refund.mercadopago({ paymentId: 'payment_123' });
+   * 
+   * @description
+   * Facilitates refund processing for various payment platforms.
+   */
+  refund: ReturnType<typeof vexorRefund>;
+
+  createRefund(platform: SupportedVexorPlatform, body: VexorRefundBody): Promise<VexorRefundResponse> {
+    return createRefund(this, platform, body);
+  }
 
 }
 
@@ -339,5 +380,8 @@ export type {
   VexorConnectAuthBody,
   VexorConnectPayBody,
   VexorConnectDashboardBody,
-  VexorConnectResponse
+  VexorConnectResponse,
+  VexorRefundBody,
+  VexorRefundResponse,
+  VexorSubscriptionResponse
 };

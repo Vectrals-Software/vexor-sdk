@@ -43,6 +43,14 @@ declare const vexorConnect: (vexor: any) => ((params: {
     dashboard: (body: VexorConnectDashboardBody) => any;
 };
 
+declare const vexorRefund: (vexor: any) => ((params: {
+    platform: SupportedVexorPlatform;
+} & VexorRefundBody) => any) & {
+    mercadopago: (body: VexorRefundBody) => any;
+    stripe: (body: VexorRefundBody) => any;
+    paypal: (body: VexorRefundBody) => any;
+};
+
 type SupportedVexorPlatform = 'mercadopago' | 'stripe' | 'paypal';
 interface VexorPaymentBody {
     items: Array<{
@@ -58,8 +66,7 @@ interface VexorPaymentBody {
     };
 }
 interface VexorPortalBody {
-    customerId?: string;
-    orderId?: string;
+    identifier: string;
     returnUrl: string;
 }
 interface VexorSubscriptionBody {
@@ -77,18 +84,20 @@ interface VexorSubscriptionBody {
 }
 interface VexorPaymentResponse {
     message: string;
-    result: {
-        payment_url: string;
-        identifier: string;
-        raw: any;
-    };
+    payment_url: string;
+    identifier: string;
+    raw: any;
+}
+interface VexorSubscriptionResponse {
+    message: string;
+    payment_url: string;
+    identifier: string;
+    raw: any;
 }
 interface VexorPortalResponse {
     message: string;
-    result: {
-        portal_url: string;
-        raw?: any;
-    };
+    portal_url: string;
+    raw?: any;
 }
 interface VexorParams {
     publishableKey: string;
@@ -135,6 +144,15 @@ interface VexorConnectResponse {
         identifier: string;
         raw: any;
     };
+}
+interface VexorRefundBody {
+    identifier: string;
+}
+interface VexorRefundResponse {
+    message: string;
+    refund_response: any;
+    identifier: string;
+    error?: any;
 }
 declare class Vexor {
     private static instance;
@@ -201,7 +219,7 @@ declare class Vexor {
      * Facilitates simple subscription scenarios for various payment platforms.
      */
     subscribe: ReturnType<typeof vexorSubscribe>;
-    createSubscription(platform: SupportedVexorPlatform, body: VexorSubscriptionBody): Promise<VexorPaymentResponse>;
+    createSubscription(platform: SupportedVexorPlatform, body: VexorSubscriptionBody): Promise<VexorSubscriptionResponse>;
     /**
      * Billing portal method with platform-specific shortcuts.
      * @type {Object}
@@ -245,6 +263,25 @@ declare class Vexor {
     createConnectAuth(body: VexorConnectAuthBody): Promise<VexorConnectResponse>;
     createConnectPay(platform: SupportedVexorPlatform, body: VexorConnectPayBody): Promise<VexorConnectResponse>;
     createConnectDashboard(body: VexorConnectDashboardBody): Promise<VexorConnectResponse>;
+    /**
+     * Refund method with platform-specific shortcuts.
+     * @type {Object}
+     * @property {Function} mercadopago - Shortcut for MercadoPago refunds.
+     * @property {Function} stripe - Shortcut for Stripe refunds.
+     * @property {Function} paypal - Shortcut for PayPal refunds.
+     *
+     * @example
+     * // Generic usage
+     * vexor.refund({ platform: 'mercadopago', paymentId: 'payment_123' });
+     *
+     * // Platform-specific shortcut
+     * vexor.refund.mercadopago({ paymentId: 'payment_123' });
+     *
+     * @description
+     * Facilitates refund processing for various payment platforms.
+     */
+    refund: ReturnType<typeof vexorRefund>;
+    createRefund(platform: SupportedVexorPlatform, body: VexorRefundBody): Promise<VexorRefundResponse>;
 }
 
-export { type SupportedVexorPlatform, Vexor, type VexorConnectAuthBody, type VexorConnectBody, type VexorConnectDashboardBody, type VexorConnectPayBody, type VexorConnectResponse, type VexorParams, type VexorPaymentBody, type VexorPaymentResponse, type VexorPortalBody, type VexorPortalResponse, type VexorSubscriptionBody };
+export { type SupportedVexorPlatform, Vexor, type VexorConnectAuthBody, type VexorConnectBody, type VexorConnectDashboardBody, type VexorConnectPayBody, type VexorConnectResponse, type VexorParams, type VexorPaymentBody, type VexorPaymentResponse, type VexorPortalBody, type VexorPortalResponse, type VexorRefundBody, type VexorRefundResponse, type VexorSubscriptionBody, type VexorSubscriptionResponse };

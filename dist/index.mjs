@@ -609,12 +609,74 @@ function _createConnectDashboard() {
     });
     return _createConnectDashboard.apply(this, arguments);
 }
+// src/methods/refund.ts
+var vexorRefund = function(vexor) {
+    return Object.assign(// Generic refund method
+    function(params) {
+        return vexor.createRefund(params.platform, params);
+    }, // Platform-specific refund methods
+    {
+        mercadopago: function(body) {
+            return vexor.createRefund("mercadopago", body);
+        },
+        stripe: function(body) {
+            return vexor.createRefund("stripe", body);
+        },
+        paypal: function(body) {
+            return vexor.createRefund("paypal", body);
+        }
+    });
+};
+function createRefund(vexor, platform, body) {
+    return _createRefund.apply(this, arguments);
+}
+function _createRefund() {
+    _createRefund = _async_to_generator(function(vexor, platform, body) {
+        var response, data, errorMessage;
+        return _ts_generator(this, function(_state) {
+            switch(_state.label){
+                case 0:
+                    return [
+                        4,
+                        fetch("".concat(vexor.apiUrl, "/refunds"), {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "x-vexor-key": vexor.secretKey,
+                                "x-vexor-platform": platform,
+                                "x-vexor-project-id": vexor.projectId
+                            },
+                            body: JSON.stringify(body)
+                        })
+                    ];
+                case 1:
+                    response = _state.sent();
+                    return [
+                        4,
+                        response.json()
+                    ];
+                case 2:
+                    data = _state.sent();
+                    if (!response.ok) {
+                        errorMessage = data.message || "An unknown error occurred";
+                        throw new Error("Refund request failed: ".concat(errorMessage));
+                    }
+                    return [
+                        2,
+                        data
+                    ];
+            }
+        });
+    });
+    return _createRefund.apply(this, arguments);
+}
 // src/methods.ts
 var _Vexor = /*#__PURE__*/ function() {
     "use strict";
     function _Vexor(params) {
         _class_call_check(this, _Vexor);
-        this.apiUrl = "http://localhost:3001/api";
+        //private apiUrl: string = "https://www.vexorpay.com/api";
+        this.apiUrl = "http://localhost:3000/api";
         this.publishableKey = params.publishableKey;
         this.secretKey = params.secretKey;
         this.projectId = params.projectId;
@@ -623,6 +685,7 @@ var _Vexor = /*#__PURE__*/ function() {
         this.subscribe = vexorSubscribe(this);
         this.portal = vexorPortal(this);
         this.connect = vexorConnect(this);
+        this.refund = vexorRefund(this);
     }
     _create_class(_Vexor, [
         {
@@ -671,6 +734,12 @@ var _Vexor = /*#__PURE__*/ function() {
             key: "createConnectDashboard",
             value: function createConnectDashboard1(body) {
                 return createConnectDashboard(this, body);
+            }
+        },
+        {
+            key: "createRefund",
+            value: function createRefund1(platform, body) {
+                return createRefund(this, platform, body);
             }
         }
     ], [
