@@ -11,7 +11,7 @@
   "scripts": {
     "build": "tsup src/index.ts --format cjs,esm --dts",
     "lint": "tsc",
-    "publish-package": "npm version patch && npm run build && npm publish",
+    "publish": "npm version patch && npm run build && npm publish",
     "publish-minor": "npm version minor && npm run build && npm publish",
     "publish-major": "npm version major && npm run build && npm publish"
   },
