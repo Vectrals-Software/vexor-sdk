@@ -1,6 +1,6 @@
 {
   "name": "vexor",
-  "version": "0.0.4",
+  "version": "0.0.6",
   "description": "Core SDK for Vexor payments",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -10,19 +10,27 @@
   ],
   "scripts": {
     "build": "tsup src/index.ts --format cjs,esm --dts",
-    "lint": "tsc"
+    "lint": "tsc",
+    "pre-publish": "ts-node scripts/pre-publish.ts",
+    "publish-package": "npm run pre-publish && npm version patch && npm run build && npm publish",
+    "publish-minor": "npm run pre-publish && npm version minor && npm run build && npm publish",
+    "publish-major": "npm run pre-publish && npm version major && npm run build && npm publish"
   },
   "keywords": [
     "vexor",
     "payments",
-    "sdk"
+    "sdk",
+    "stripe",
+    "paypal",
+    "mercadopago"
   ],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@swc/core": "^1.7.26",
-    "@types/node": "^22.5.5",
+    "@types/node": "^22.9.0",
+    "ts-node": "^10.9.2",
     "tsup": "^8.3.0",
-    "typescript": "^5.6.2"
+    "typescript": "^5.6.3"
   }
 }

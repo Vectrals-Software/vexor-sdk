@@ -138,8 +138,8 @@ class Vexor {
   private publishableKey: string;
   private secretKey?: string;
   private projectId: string;
-  //private apiUrl: string = "https://www.vexorpay.com/api";
-  private apiUrl: string = "http://localhost:3000/api";
+  private apiUrl: string = "https://www.vexorpay.com/api";
+  //private apiUrl: string = "http://localhost:3000/api";
 
 
   // Constructor to initialize Vexor with parameters object
