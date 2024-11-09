@@ -1,6 +1,6 @@
 {
   "name": "vexor",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "description": "Core SDK for Vexor payments",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
