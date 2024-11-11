@@ -126,7 +126,7 @@ interface VexorRefundBody {
 
 interface VexorRefundResponse {
     message: string;
-    refund_response: any;
+    raw: any;
     identifier: string;
     error?: any;
 }
