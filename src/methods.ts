@@ -88,7 +88,7 @@ interface VexorConnectAuthBody {
 interface VexorConnectPayBody {
   redirectUrl: string;
   seller: {
-    access_token: string;
+    identifier: string;
     fee?: string | number;
   };
   items: Array<{
@@ -106,6 +106,13 @@ interface VexorConnectPayBody {
 
 interface VexorConnectDashboardBody {
   account_identifier: string;
+}
+
+interface VexorConnectDashboardResponse {
+  message: string;
+  dashboard_url: string;
+  identifier: string;
+  raw: any;
 }
 
 interface VexorConnectResponse {
@@ -398,6 +405,7 @@ export type {
   VexorConnectAuthBody,
   VexorConnectPayBody,
   VexorConnectDashboardBody,
+  VexorConnectDashboardResponse,
   VexorConnectResponse,
   VexorRefundBody,
   VexorRefundResponse,
