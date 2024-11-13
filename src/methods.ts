@@ -110,13 +110,11 @@ interface VexorConnectDashboardBody {
 
 interface VexorConnectResponse {
   message: string;
-  result: {
-    connect_url?: string;
-    payment_url?: string;
-    dashboard_url?: string;
-    identifier: string;
-    raw: any;
-  };
+  connect_url?: string;
+  payment_url?: string;
+  dashboard_url?: string;
+  identifier: string;
+  raw: any;
 }
 
 // Add these interfaces with the existing interfaces
