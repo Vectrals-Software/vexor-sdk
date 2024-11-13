@@ -105,7 +105,7 @@ interface VexorConnectPayBody {
 }
 
 interface VexorConnectDashboardBody {
-  connectedAccountId: string;
+  account_identifier: string;
 }
 
 interface VexorConnectResponse {
