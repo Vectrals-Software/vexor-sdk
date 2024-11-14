@@ -80,7 +80,6 @@ interface VexorConnectBody {
 }
 
 interface VexorConnectAuthBody {
-  redirectUrl: string;
   mp_state_key: string;
   mp_code: string;
 }
