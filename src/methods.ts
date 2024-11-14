@@ -80,8 +80,7 @@ interface VexorConnectBody {
 }
 
 interface VexorConnectAuthBody {
-  mp_state_key: string;
-  mp_code: string;
+    url: string;
 }
 
 interface VexorConnectPayBody {
