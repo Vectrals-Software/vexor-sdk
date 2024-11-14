@@ -2,7 +2,7 @@ import { createCheckout, vexorPay } from "./methods/pay";
 import { handleWebhook, vexorWebhook } from "./methods/webhook";
 import { createSubscription, vexorSubscribe } from "./methods/subscribe";
 import { createPortal, vexorPortal } from "./methods/portal";
-import { createConnect, createConnectAuth, createConnectPay, createConnectDashboard, vexorConnect } from "./methods/connect";
+import { createConnect, createConnectAuth, createConnectPay, createConnectDashboard, vexorConnect, createConnectAuthRefresh } from "./methods/connect";
 import { createRefund, vexorRefund } from "./methods/refund";
 
 // Define the supported payment platforms
@@ -81,6 +81,10 @@ interface VexorConnectBody {
 
 interface VexorConnectAuthBody {
     url: string;
+}
+
+interface VexorConnectAuthRefreshBody {
+    identifier: string;
 }
 
 interface VexorConnectPayBody {
@@ -353,6 +357,10 @@ class Vexor {
   createConnectDashboard(body: VexorConnectDashboardBody): Promise<VexorConnectResponse> {
     return createConnectDashboard(this, body);
   }
+
+  createConnectAuthRefresh(body: VexorConnectAuthRefreshBody): Promise<VexorConnectResponse> {
+    return createConnectAuthRefresh(this, body);
+  }
   // ========================================================
   // vexor.connect and related methods                [END]
   // ========================================================
@@ -401,6 +409,7 @@ export type {
   VexorPortalBody,
   VexorConnectBody,
   VexorConnectAuthBody,
+  VexorConnectAuthRefreshBody,
   VexorConnectPayBody,
   VexorConnectDashboardBody,
   VexorConnectDashboardResponse,

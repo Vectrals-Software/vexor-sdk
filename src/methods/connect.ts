@@ -1,4 +1,4 @@
-import { SupportedVexorPlatform, VexorConnectBody, VexorConnectResponse, VexorConnectAuthBody, VexorConnectPayBody, VexorConnectDashboardBody } from "../methods";
+import { SupportedVexorPlatform, VexorConnectBody, VexorConnectResponse, VexorConnectAuthBody, VexorConnectPayBody, VexorConnectDashboardBody, VexorConnectAuthRefreshBody } from "../methods";
 
 export const vexorConnect = (vexor: any) => {
   return Object.assign(
@@ -9,7 +9,12 @@ export const vexorConnect = (vexor: any) => {
     {
       mercadopago: (body: VexorConnectBody) => vexor.createConnect('mercadopago', body),
       stripe: (body: VexorConnectBody) => vexor.createConnect('stripe', body),
-      auth: (body: VexorConnectAuthBody) => vexor.createConnectAuth(body),
+      auth: Object.assign(
+        (body: VexorConnectAuthBody) => vexor.createConnectAuth(body),
+        {
+          refresh: (body: VexorConnectAuthRefreshBody) => vexor.createConnectAuthRefresh(body),
+        }
+      ),
       pay: Object.assign(
         (params: { platform: SupportedVexorPlatform } & VexorConnectPayBody) =>
           vexor.createConnectPay(params.platform, params),
@@ -110,6 +115,29 @@ export async function createConnectDashboard(vexor: any, body: VexorConnectDashb
   if (!response.ok) {
     const errorMessage = data.message || 'An unknown error occurred';
     throw new Error(`Connect dashboard request failed: ${errorMessage}`);
+  }
+
+  return data;
+}
+
+export async function createConnectAuthRefresh(vexor: any, body: VexorConnectAuthRefreshBody): Promise<VexorConnectResponse> {
+  const response = await fetch(`${vexor.apiUrl}/connect`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-vexor-key': vexor.secretKey,
+      'x-vexor-platform': 'mercadopago',
+      'x-vexor-project-id': vexor.projectId,
+      'x-vexor-action': 'refresh_credentials',
+    },
+    body: JSON.stringify(body),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    const errorMessage = data.message || 'An unknown error occurred';
+    throw new Error(`Connect auth refresh request failed: ${errorMessage}`);
   }
 
   return data;
