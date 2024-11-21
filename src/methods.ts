@@ -2,7 +2,7 @@ import { createCheckout, vexorPay } from "./methods/pay";
 import { handleWebhook, vexorWebhook } from "./methods/webhook";
 import { createSubscription, vexorSubscribe } from "./methods/subscribe";
 import { createPortal, vexorPortal } from "./methods/portal";
-import { createConnect, createConnectAuth, createConnectPay, createConnectDashboard, vexorConnect, createConnectAuthRefresh } from "./methods/connect";
+import { createConnect, createConnectAuth, createConnectPay, createConnectDashboard, vexorConnect, createConnectAuthRefresh, createConnectRefund } from "./methods/connect";
 import { createRefund, vexorRefund } from "./methods/refund";
 
 // Define the supported payment platforms
@@ -124,6 +124,13 @@ interface VexorConnectResponse {
   dashboard_url?: string;
   identifier: string;
   raw: any;
+}
+
+interface VexorConnectRefundRequest {
+    identifier: string;
+    seller: {
+        identifier: string;
+    }
 }
 
 // Add these interfaces with the existing interfaces
@@ -329,6 +336,7 @@ class Vexor {
    * @property {Function} auth - Shortcut for MercadoPago auth.
    * @property {Object} pay - Object with payment methods for connected accounts.
    * @property {Function} dashboard - Shortcut for Stripe dashboard link.
+   * @property {Function} refund - Shortcut for Stripe refund.
    * 
    * @example
    * // Generic usage
@@ -360,6 +368,10 @@ class Vexor {
 
   createConnectAuthRefresh(body: VexorConnectAuthRefreshBody): Promise<VexorConnectResponse> {
     return createConnectAuthRefresh(this, body);
+  }
+
+  createConnectRefund(platform: SupportedVexorPlatform, body: VexorConnectRefundRequest): Promise<VexorConnectResponse> {
+    return createConnectRefund(this, platform, body);
   }
   // ========================================================
   // vexor.connect and related methods                [END]
@@ -416,5 +428,6 @@ export type {
   VexorConnectResponse,
   VexorRefundBody,
   VexorRefundResponse,
-  VexorSubscriptionResponse
+  VexorSubscriptionResponse,
+  VexorConnectRefundRequest
 };

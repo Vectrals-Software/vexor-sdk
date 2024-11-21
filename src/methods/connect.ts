@@ -1,4 +1,4 @@
-import { SupportedVexorPlatform, VexorConnectBody, VexorConnectResponse, VexorConnectAuthBody, VexorConnectPayBody, VexorConnectDashboardBody, VexorConnectAuthRefreshBody } from "../methods";
+import { SupportedVexorPlatform, VexorConnectBody, VexorConnectResponse, VexorConnectAuthBody, VexorConnectPayBody, VexorConnectDashboardBody, VexorConnectAuthRefreshBody, VexorConnectRefundRequest } from "../methods";
 
 export const vexorConnect = (vexor: any) => {
   return Object.assign(
@@ -24,6 +24,17 @@ export const vexorConnect = (vexor: any) => {
         }
       ),
       dashboard: (body: VexorConnectDashboardBody) => vexor.createConnectDashboard(body),
+      refund: Object.assign(
+        // Generic refund method
+        (params: { platform: SupportedVexorPlatform } & VexorConnectRefundRequest) =>
+            vexor.createConnectRefund(params.platform, params),
+        // Platform-specific refund methods
+        {
+            mercadopago: (body: VexorConnectRefundRequest) => vexor.createConnectRefund('mercadopago', body),
+            stripe: (body: VexorConnectRefundRequest) => vexor.createConnectRefund('stripe', body),
+            /* paypal: (body: VexorConnectRefundRequest) => vexor.createConnectRefund('paypal', body), */
+        }
+      ),
     }
   );
 }
@@ -115,6 +126,29 @@ export async function createConnectDashboard(vexor: any, body: VexorConnectDashb
   if (!response.ok) {
     const errorMessage = data.message || 'An unknown error occurred';
     throw new Error(`Connect dashboard request failed: ${errorMessage}`);
+  }
+
+  return data;
+}
+
+export async function createConnectRefund(vexor: any, platform: SupportedVexorPlatform, body: VexorConnectRefundRequest): Promise<VexorConnectResponse> {
+  const response = await fetch(`${vexor.apiUrl}/connect`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-vexor-key': vexor.secretKey,
+      'x-vexor-platform': platform,
+      'x-vexor-project-id': vexor.projectId,
+      'x-vexor-action': 'create_refund',
+    },
+    body: JSON.stringify(body),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    const errorMessage = data.message || 'An unknown error occurred';
+    throw new Error(`Connect refund request failed: ${errorMessage}`);
   }
 
   return data;
