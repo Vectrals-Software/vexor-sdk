@@ -8,6 +8,11 @@ import { createRefund, vexorRefund } from "./methods/refund";
 // Define the supported payment platforms
 type SupportedVexorPlatform = 'mercadopago' | 'stripe' | 'paypal' | 'talo';
 
+// Define the supported payment methods
+type SupportedVexorPaymentMethods = [
+  'transfer', 
+  'crypto'
+];
 
 // Define the structure for payment request body
 interface VexorPaymentBody {
@@ -21,7 +26,7 @@ interface VexorPaymentBody {
     successRedirect?: string;
     pendingRedirect?: string;
     failureRedirect?: string;
-    paymentMethods?: string[];
+    paymentMethods?: SupportedVexorPaymentMethods; // Currently only for Talo 
   };
 }
 
