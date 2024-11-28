@@ -6,7 +6,7 @@ import { createConnect, createConnectAuth, createConnectPay, createConnectDashbo
 import { createRefund, vexorRefund } from "./methods/refund";
 
 // Define the supported payment platforms
-type SupportedVexorPlatform = 'mercadopago' | 'stripe' | 'paypal';
+type SupportedVexorPlatform = 'mercadopago' | 'stripe' | 'paypal' | 'talo';
 
 
 // Define the structure for payment request body
@@ -21,6 +21,7 @@ interface VexorPaymentBody {
     successRedirect?: string;
     pendingRedirect?: string;
     failureRedirect?: string;
+    paymentMethods?: string[];
   };
 }
 
@@ -216,7 +217,7 @@ class Vexor {
  * @property {Function} mercadopago - Shortcut for MercadoPago payments.
  * @property {Function} stripe - Shortcut for Stripe payments.
  * @property {Function} paypal - Shortcut for PayPal payments.
- * 
+ * @property {Function} talo - Shortcut for Talo payments.
  * @example
  * // Generic usage
  * vexor.pay({ platform: 'mercadopago', items: [...] });
@@ -246,7 +247,7 @@ class Vexor {
      * @property {Function} mercadopago - Shortcut for MercadoPago webhooks.
      * @property {Function} stripe - Shortcut for Stripe webhooks.
      * @property {Function} paypal - Shortcut for PayPal webhooks.
-     * 
+     * @property {Function} talo - Shortcut for Talo webhooks.
      * @example
      * // Generic usage
      * vexor.webhook(req);

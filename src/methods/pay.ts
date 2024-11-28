@@ -10,6 +10,7 @@ export const vexorPay = (vexor: any) => {
             mercadopago: (body: VexorPaymentBody) => vexor.createCheckout('mercadopago', body),
             stripe: (body: VexorPaymentBody) => vexor.createCheckout('stripe', body),
             paypal: (body: VexorPaymentBody) => vexor.createCheckout('paypal', body),
+            talo: (body: VexorPaymentBody) => vexor.createCheckout('talo', body),
         }
     );
 }
