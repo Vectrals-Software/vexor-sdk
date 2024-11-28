@@ -27,6 +27,7 @@ interface VexorPaymentBody {
     pendingRedirect?: string;
     failureRedirect?: string;
     paymentMethods?: SupportedVexorPaymentMethods; // Currently only for Talo 
+    currency?: string;
   };
 }
 
