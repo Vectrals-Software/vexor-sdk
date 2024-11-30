@@ -9,6 +9,7 @@ export const vexorWebhook = (vexor: any) => {
             mercadopago: (req: Request) => vexor.handleWebhook(req),
             stripe: (req: Request) => vexor.handleWebhook(req),
             paypal: (req: Request) => vexor.handleWebhook(req),
+            talo: (req: Request) => vexor.handleWebhook(req),
         }
     );
 }
@@ -29,6 +30,8 @@ export async function handleWebhook(vexor: any, req: Request): Promise<any> {
         platform = 'stripe';
     } else if (headers.get('referer')?.includes('mercadopago')) {
         platform = 'mercadopago';
+    } else if (queryParams.get('vexorPlatform') === 'talo') {
+        platform = 'talo';
     }
 
     if (!platform) {
