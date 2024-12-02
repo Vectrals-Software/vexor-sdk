@@ -9,10 +9,7 @@ import { createRefund, vexorRefund } from "./methods/refund";
 type SupportedVexorPlatform = 'mercadopago' | 'stripe' | 'paypal' | 'talo';
 
 // Define the supported payment methods
-type SupportedVexorPaymentMethods = [
-  'transfer', 
-  'crypto'
-];
+type SupportedVexorPaymentMethods = Array<'transfer' | 'crypto'>;
 
 // Define the structure for payment request body
 interface VexorPaymentBody {
@@ -260,6 +257,9 @@ class Vexor {
      * 
      * // Platform-specific shortcut
      * vexor.webhook.mercadopago(req);
+     * vexor.webhook.talo(req);
+     * vexor.webhook.paypal(req);
+     * vexor.webhook.stripe(req);
      * 
      * @description
      * Facilitates webhook handling for various payment platforms.
