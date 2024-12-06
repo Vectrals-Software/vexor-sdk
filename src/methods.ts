@@ -6,7 +6,7 @@ import { createConnect, createConnectAuth, createConnectPay, createConnectDashbo
 import { createRefund, vexorRefund } from "./methods/refund";
 
 // Define the supported payment platforms
-type SupportedVexorPlatform = 'mercadopago' | 'stripe' | 'paypal' | 'talo';
+type SupportedVexorPlatform = 'mercadopago' | 'stripe' | 'paypal' | 'talo' | 'square';
 
 // Define the supported payment methods
 type SupportedVexorPaymentMethods = Array<'transfer' | 'crypto'>;
@@ -251,6 +251,7 @@ class Vexor {
      * @property {Function} stripe - Shortcut for Stripe webhooks.
      * @property {Function} paypal - Shortcut for PayPal webhooks.
      * @property {Function} talo - Shortcut for Talo webhooks.
+     * @property {Function} square - Shortcut for Square webhooks.
      * @example
      * // Generic usage
      * vexor.webhook(req);
@@ -260,7 +261,7 @@ class Vexor {
      * vexor.webhook.talo(req);
      * vexor.webhook.paypal(req);
      * vexor.webhook.stripe(req);
-     * 
+     * vexor.webhook.square(req);
      * @description
      * Facilitates webhook handling for various payment platforms.
      */

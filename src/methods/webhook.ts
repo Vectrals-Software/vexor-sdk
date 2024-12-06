@@ -10,6 +10,7 @@ export const vexorWebhook = (vexor: any) => {
             stripe: (req: Request) => vexor.handleWebhook(req),
             paypal: (req: Request) => vexor.handleWebhook(req),
             talo: (req: Request) => vexor.handleWebhook(req),
+            square: (req: Request) => vexor.handleWebhook(req),
         }
     );
 }
@@ -32,6 +33,8 @@ export async function handleWebhook(vexor: any, req: Request): Promise<any> {
         platform = 'mercadopago';
     } else if (queryParams.get('vexorPlatform') === 'talo') {
         platform = 'talo';
+    } else if (headers.get('x-square-hmacsha256-signature')) {
+        platform = 'square';
     }
 
     if (!platform) {
