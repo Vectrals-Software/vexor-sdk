@@ -2,171 +2,71 @@ import { createCheckout, vexorPay } from "./methods/pay";
 import { handleWebhook, vexorWebhook } from "./methods/webhook";
 import { createSubscription, vexorSubscribe } from "./methods/subscribe";
 import { createPortal, vexorPortal } from "./methods/portal";
-import { createConnect, createConnectAuth, createConnectPay, createConnectDashboard, vexorConnect, createConnectAuthRefresh, createConnectRefund } from "./methods/connect";
+import {
+  createConnect,
+  createConnectAuth,
+  createConnectPay,
+  createConnectDashboard,
+  vexorConnect,
+  createConnectAuthRefresh,
+  createConnectRefund
+} from "./methods/connect";
 import { createRefund, vexorRefund } from "./methods/refund";
+import { SupportedVexorPlatform } from "./types/platforms";
+import {
+  VexorPaymentBody,
+  VexorSubscriptionBody,
+  VexorPortalBody,
+  VexorConnectBody,
+  VexorConnectAuthBody,
+  VexorConnectAuthRefreshBody,
+  VexorConnectPayBody,
+  VexorConnectDashboardBody,
+  VexorConnectRefundRequest,
+  VexorRefundBody
+} from "./types/requests";
 
-// Define the supported payment platforms
-type SupportedVexorPlatform = 'mercadopago' | 'stripe' | 'paypal' | 'talo' | 'square';
+import {
+  VexorPaymentResponse,
+  VexorSubscriptionResponse,
+  VexorPortalResponse,
+  VexorConnectResponse,
+  VexorConnectDashboardResponse,
+  VexorRefundResponse
+} from "./types/responses";
 
-// Define the supported payment methods
-type SupportedVexorPaymentMethods = Array<'transfer' | 'crypto'>;
+import { OpenSourceConfig, VexorConfig } from "./types/configuration";
 
-// Define the structure for payment request body
-interface VexorPaymentBody {
-  items: Array<{
-    title: string;
-    description: string;
-    quantity: number;
-    unit_price: number;
-  }>;
-  options?: {
-    successRedirect?: string;
-    pendingRedirect?: string;
-    failureRedirect?: string;
-    paymentMethods?: SupportedVexorPaymentMethods; // Currently only for Talo 
-    currency?: string;
-  };
-}
-
-interface VexorPortalBody {
-  identifier: string;
-  returnUrl: string;
-}
-
-interface VexorSubscriptionBody {
-  name: string;
-  description?: string;
-  interval: string;
-  price: number;
-  currency: string;
-  successRedirect: string;
-  failureRedirect?: string;
-  customer?: {
-    email: string;
-    name?: string;
-  };
-}
-
-// Define the structure for payment response
-interface VexorPaymentResponse {
-  message: string;
-  payment_url: string;
-  identifier: string;
-  raw: any;
-}
-
-// Define the structure for subscription response
-interface VexorSubscriptionResponse {
-  message: string;
-  payment_url: string;
-  identifier: string;
-  raw: any;
-}
-
-// Define the structure for portal response
-interface VexorPortalResponse {
-  message: string;
-  portal_url: string;
-  raw?: any;
-}
-
-// Define the structure for Vexor constructor parameters
-interface VexorParams {
-  publishableKey: string;
-  projectId: string;
-  secretKey?: string;
-}
-
-interface VexorConnectBody {
-  redirectUrl: string;
-  countryCode?: string;
-  express?: boolean;
-}
-
-interface VexorConnectAuthBody {
-    url: string;
-}
-
-interface VexorConnectAuthRefreshBody {
-    identifier: string;
-}
-
-interface VexorConnectPayBody {
-  redirectUrl: string;
-  seller: {
-    identifier: string;
-    fee?: string | number;
-  };
-  items: Array<{
-    title: string;
-    description: string;
-    quantity: number;
-    unit_price: number;
-  }>;
-  options?: {
-    successRedirect?: string;
-    pendingRedirect?: string;
-    failureRedirect?: string;
-  };
-}
-
-interface VexorConnectDashboardBody {
-  account_identifier: string;
-}
-
-interface VexorConnectDashboardResponse {
-  message: string;
-  dashboard_url: string;
-  identifier: string;
-  raw: any;
-}
-
-interface VexorConnectResponse {
-  message: string;
-  connect_url?: string;
-  payment_url?: string;
-  dashboard_url?: string;
-  identifier: string;
-  raw: any;
-}
-
-interface VexorConnectRefundRequest {
-    identifier: string;
-    seller: {
-        identifier: string;
-    }
-}
-
-// Add these interfaces with the existing interfaces
-interface VexorRefundBody {
-    identifier: string;
-}
-
-interface VexorRefundResponse {
-    message: string;
-    raw: any;
-    identifier: string;
-    error?: any;
-}
 
 // Main Vexor class for handling payments
 class Vexor {
   // Singleton instance of Vexor
   private static instance: Vexor | null = null;
-  private publishableKey: string;
+
+  // Using Vexor Cloud (commercial) version
+  private publishableKey?: string;
   private secretKey?: string;
-  private projectId: string;
+  private projectId?: string;
   private apiUrl: string = "https://www.vexorpay.com/api";
-  //private apiUrl: string = "http://localhost:3000/api";
+
+  // Using Vexor open source version
+  public platforms?: OpenSourceConfig;
 
   // Add custom to the class properties
   custom: (url: string) => Vexor;
 
   // Constructor to initialize Vexor with parameters object
-  constructor(params: VexorParams) {
+  constructor(params: VexorConfig) {
+
+    // Vexor Cloud
     this.publishableKey = params.publishableKey;
     this.secretKey = params.secretKey;
     this.projectId = params.projectId;
+
+    // Vexor open source configuration
+    this.platforms = params.platforms || {};
+
+    // Methods
     this.pay = vexorPay(this);
     this.webhook = vexorWebhook(this);
     this.subscribe = vexorSubscribe(this);
@@ -174,16 +74,35 @@ class Vexor {
     this.connect = vexorConnect(this);
     this.refund = vexorRefund(this);
 
-    // Add custom method to the instance
+    // Test the API against a custom API URL
     this.custom = (url: string) => this.setApiUrl(url);
   }
 
-  // Create a Vexor instance using environment variables
+  // Create a Vexor instance using environment variables. 
+  // This way of creating an instance is used for Vexor Cloud only
   static fromEnv(): Vexor & { custom: (url: string) => Vexor } {
     if (!Vexor.instance) {
-      const publishableKey = process.env.NEXT_PUBLIC_VEXOR_PUBLISHABLE_KEY || process.env.VEXOR_PUBLISHABLE_KEY;
-      const secretKey = process.env.VEXOR_SECRET_KEY;
-      const projectId = process.env.NEXT_PUBLIC_VEXOR_PROJECT || process.env.VEXOR_PROJECT;
+
+      const publishableKey = 
+      /* Next.js */
+      process.env.NEXT_PUBLIC_VEXOR_PUBLISHABLE_KEY 
+      /* Node.js */
+      || process.env.VEXOR_PUBLISHABLE_KEY;
+
+
+      const secretKey = 
+      /* Next.js */
+      process.env.NEXT_PUBLIC_VEXOR_SECRET_KEY 
+      /* Node.js */
+      || process.env.VEXOR_SECRET_KEY;
+
+      
+      const projectId = 
+      /* Next.js */
+      process.env.NEXT_PUBLIC_VEXOR_PROJECT 
+      /* Node.js */
+      || process.env.VEXOR_PROJECT;
+
       if (!publishableKey) {
         throw new Error('Missing environment variable for publishable key');
       }
@@ -194,7 +113,7 @@ class Vexor {
     }
 
     const instance = Vexor.instance as Vexor & { custom: (url: string) => Vexor };
-    instance.custom = function(url: string) {
+    instance.custom = function (url: string) {
       return this.setApiUrl(url);
     };
 
@@ -202,9 +121,15 @@ class Vexor {
   }
 
   // Create a Vexor instance with provided parameters
-  static init(params: VexorParams): Vexor & { custom: (url: string) => Vexor } {
+  static init(params: VexorConfig): Vexor & { custom: (url: string) => Vexor } {
+
+    // Use either Vexor Cloud or Vexor OpenSource
+    if (params.platforms && (params.publishableKey || params.secretKey || params.projectId)) { 
+      throw new Error('Vexor Cloud and Vexor OpenSource cannot be used together, please define only the platforms if you are using Vexor OpenSource or only the publishableKey, secretKey and projectId if you are using Vexor Cloud');
+    }
+
     const instance = new Vexor(params) as Vexor & { custom: (url: string) => Vexor };
-    instance.custom = function(url: string) {
+    instance.custom = function (url: string) {
       return this.setApiUrl(url);
     };
     return instance;
@@ -424,7 +349,7 @@ export type {
   VexorPaymentBody,
   VexorSubscriptionBody,
   VexorPaymentResponse,
-  VexorParams,
+  VexorConfig,
   VexorPortalResponse,
   VexorPortalBody,
   VexorConnectBody,

@@ -8,8 +8,8 @@
 
 <div align="center">
   <a href="https://www.npmjs.com/package/vexor"><img src="https://img.shields.io/npm/v/vexor.svg?style=for-the-badge&labelColor=000000" alt="NPM version"></a>
-  <img src="https://img.shields.io/badge/License-Proprietary-red.svg?style=for-the-badge&labelColor=000000" alt="License">
-  <a href="https://discord.gg/vexorpay"><img src="https://img.shields.io/badge/Join%20our%20Discord-blueviolet.svg?style=for-the-badge&logo=Discord&labelColor=000000&logoWidth=20" alt="Join our Discord"></a>
+  <img src="https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge&labelColor=000000" alt="License">
+  <a href="https://discord.gg/ZpMDsfBkgY"><img src="https://img.shields.io/badge/Join%20our%20Discord-blueviolet.svg?style=for-the-badge&logo=Discord&labelColor=000000&logoWidth=20" alt="Join our Discord"></a>
 </div>
 
 
@@ -28,9 +28,19 @@ To get started with Vexor:
 2. Initialize Vexor in your project:
    ```javascript
    import { Vexor } from "vexor";
+
+   const vexor = Vexor.init({
+    platforms: {
+        // Read the docs for more information on how to configure the platforms
+    }
+   });
    
+   // Or using Vexor Cloud 
    const vexor = Vexor.fromEnv();
+
+
    ```
+
 
 3. Start using Vexor's features in your application.
 
@@ -50,8 +60,8 @@ For full documentation, visit [https://docs.vexorpay.com](https://docs.vexorpay.
 
 ## Community
 
-Join our [Discord community](https://discord.gg/vexorpay) to get help, share ideas, and connect with other developers.
+Join our [Discord community](https://discord.gg/ZpMDsfBkgY) to get help, share ideas, and connect with other developers.
 
 ## License
 
-Vexor is proprietary software. Please see the [LICENSE](LICENSE) file for full terms and conditions.
+Vexor is open source software licensed under the MIT License.
