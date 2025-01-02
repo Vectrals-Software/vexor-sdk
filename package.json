@@ -9,7 +9,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "build": "tsup",
     "lint": "tsc",
     "publish-patch": "npm version patch && npm run build && npm publish",
     "publish-minor": "npm version minor && npm run build && npm publish",
@@ -24,7 +24,7 @@
     "mercadopago"
   ],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "@swc/core": "^1.7.26",
     "@types/node": "^22.9.0",
@@ -33,7 +33,7 @@
     "typescript": "^5.6.3"
   },
   "dependencies": {
-    "square": "^39.1.1",
+    "crypto": "^1.0.1",
     "stripe": "^17.5.0",
     "uuid": "^11.0.3"
   }

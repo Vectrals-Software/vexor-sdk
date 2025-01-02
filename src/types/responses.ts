@@ -1,3 +1,5 @@
+import { SupportedVexorPlatform } from "./platforms";
+
 // Define the structure for payment response
 export interface VexorPaymentResponse {
     message: string;
@@ -39,11 +41,23 @@ export interface VexorConnectResponse {
   }
 
 
-
-
 export interface VexorRefundResponse {
     message: string;
     raw: any;
     identifier: string;
     error?: any;
   }
+
+  export interface VexorWebhookResponse {
+    message: string;
+    status: string;
+    transmissionId: string;
+    identifier: string;
+    timeStamp: string;
+    orderId: string;
+    eventType: string;
+    platform: SupportedVexorPlatform;
+    resource: any;
+    eventAction?: string;
+    eventEntity?: string;
+}
