@@ -19,7 +19,7 @@ export interface OpenSourceConfig {
     paypal?: {
       client_id: string;
       secret_key: string;
-      webhook_secret?: string;
+      webhook_id?: string;
       sandbox?: boolean;
     },
     talo?: {
