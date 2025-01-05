@@ -11,37 +11,37 @@ const createSquareCheckout = async (
     body: VexorPaymentBody
 ) => {
 
- 
+
     try {
-           // Get the platform credentials
-           const platformCredentials = vexor.platforms?.square
+        // Get the platform credentials
+        const platformCredentials = vexor.platforms?.square
 
-           if (!platformCredentials) {
-               throw new Error('Square credentials not found');
-           }
-   
-           const squareAccessToken = platformCredentials.access_token
-   
-           if (!squareAccessToken) {
-               throw new Error('Square access token not found');
-           }
+        if (!platformCredentials) {
+            throw new Error('Square credentials not found');
+        }
 
-                // Check if it's a sandbox or production environment
+        const squareAccessToken = platformCredentials.access_token
+
+        if (!squareAccessToken) {
+            throw new Error('Square access token not found');
+        }
+
+        // Check if it's a sandbox or production environment
         const isSandbox = platformCredentials?.sandbox === true;
         const API_URL = isSandbox ? SUPPORTED_PLATFORMS.SQUARE.base_url.sandbox : SUPPORTED_PLATFORMS.SQUARE.base_url.production;
-           const mode = isSandbox ? 'sandbox' : 'production';
+        const mode = isSandbox ? 'sandbox' : 'production';
 
-           // Get Square location id
+        // Get Square location id
 
-           const locationsResponse = await getSquareLocation({
+        const locationsResponse = await getSquareLocation({
             url: API_URL,
             accessToken: squareAccessToken,
-           });
+        });
 
-           if (!locationsResponse.locations?.length) {
-            return { 
+        if (!locationsResponse.locations?.length) {
+            return {
                 raw: locationsResponse,
-                identifier: 'Square_token_error', 
+                identifier: 'Square_token_error',
                 message: 'Error getting Square token.',
                 payment_url: '',
             };
@@ -91,13 +91,13 @@ const createSquareCheckout = async (
 
         const identifier = result.related_resources.orders[0].id;
 
-        return { 
-            message: 'Payment checkout created', 
-            payment_url: result.payment_link.url, 
-            raw: result, 
+        return {
+            message: 'Payment checkout created',
+            payment_url: result.payment_link.url,
+            raw: result,
             identifier
         }
-   
+
 
     } catch (error) {
         console.error('Error creating Square checkout', error);

@@ -39,12 +39,17 @@ const createStripeCheckout = async (
             quantity: item.quantity,
         }));
 
-        const checkoutSessionBody: any = {
+        const checkoutSessionBody: Stripe.Checkout.SessionCreateParams = {
             payment_method_types: ['card'],
             line_items: lineItems,
             mode: 'payment',
             metadata: {
                 identifier: identifier
+            },
+            payment_intent_data: {
+                metadata: {
+                    identifier: identifier
+                },
             },
             success_url: body.options?.successRedirect || 'http://localhost:3000/success',
             cancel_url: body.options?.failureRedirect || 'http://localhost:3000/failure',

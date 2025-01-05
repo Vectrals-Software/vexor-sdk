@@ -2,8 +2,8 @@ export const SUPPORTED_PLATFORMS = {
     MERCADO_PAGO: {
         name: 'mercadopago',
         base_url: {
-            production: 'https://www.mercadopago.com.br',
-            sandbox: 'https://sandbox.mercadopago.com.br'
+            production: 'https://api.mercadopago.com',
+            sandbox: 'https://api.mercadopago.com'
         }
     },
     STRIPE: {
@@ -16,8 +16,8 @@ export const SUPPORTED_PLATFORMS = {
     PAYPAL: {
         name: 'paypal',
         base_url: {
-            production: 'https://www.paypal.com',
-            sandbox: 'https://sandbox.paypal.com'
+            production: 'https://api-m.paypal.com',
+            sandbox: 'https://api-m.sandbox.paypal.com'
         }
     },
     TALO: {

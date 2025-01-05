@@ -37,6 +37,7 @@ const createMercadoPagoCheckout = async (
             metadata: {
                 identifier: identifier
             },
+            external_reference: identifier,
             back_urls: {
                 success: body.options?.successRedirect || 'http://localhost:3000',
                 pending: body.options?.pendingRedirect || 'http://localhost:3000',
@@ -45,9 +46,7 @@ const createMercadoPagoCheckout = async (
         };
 
 
-        // Check if it's a sandbox or production environment
-        const isSandbox = platformCredentials?.sandbox === true;
-        const API_URL = isSandbox ? SUPPORTED_PLATFORMS.MERCADO_PAGO.base_url.sandbox : SUPPORTED_PLATFORMS.MERCADO_PAGO.base_url.production;
+        const API_URL = SUPPORTED_PLATFORMS.MERCADO_PAGO.base_url.production;
 
         // Make the API call to Mercadopago
         const preference_response: any = await fetch(`${API_URL}/checkout/preferences`, {
@@ -56,16 +55,16 @@ const createMercadoPagoCheckout = async (
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${mercadopagoAccessToken}`,
-            }
+            },
         })
 
         // Get the API response
         const result = await preference_response.json();
 
-        return { 
-            message: 'Mercadopago checkout created', 
-            payment_url: result.init_point, 
-            raw: result, 
+        return {
+            message: 'Mercadopago checkout created',
+            payment_url: result.init_point,
+            raw: result,
             identifier
         }
 

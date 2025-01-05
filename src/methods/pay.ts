@@ -1,12 +1,13 @@
-import { SUPPORTED_PLATFORMS } from "../lib/constants";
-import { SupportedVexorPlatform, VexorPaymentBody, VexorPaymentResponse } from "../methods";
+import { SUPPORTED_PLATFORMS } from "@/lib/constants";
+import { SupportedVexorPlatform, VexorPaymentBody, VexorPaymentResponse } from "@/methods";
 import {
   createMercadoPagoCheckout,
   createStripeCheckout,
   createPaypalCheckout,
   createTaloCheckout,
   createSquareCheckout
-} from "../actions/checkouts";
+} from "@/actions/checkouts";
+import { VersionChecker } from "@/lib/version-validator";
 
 export const vexorPay = (vexor: any) => {
 
@@ -27,8 +28,10 @@ export const vexorPay = (vexor: any) => {
 
 export async function createCheckout(vexor: any, platform: SupportedVexorPlatform, body: VexorPaymentBody): Promise<VexorPaymentResponse> {
 
+  const isOpenSource = VersionChecker.isOpenSource(vexor);
+
   // Vexor Open Source
-  if (Object.keys(vexor.platforms || {}).length > 0) {
+  if (isOpenSource) {
 
     let response: VexorPaymentResponse;
 
