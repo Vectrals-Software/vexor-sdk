@@ -1,5 +1,4 @@
-import { generateTaloAccessToken } from "@/actions/authorizations/talo/generate-talo-access-token";
-import { retrieveTaloPayment } from "@/actions/retrievals/talo/retrieve-talo-payment";
+import { retrieveTaloOperation } from "@/actions/retrievals/talo/retrieve-talo-operation";
 import { SUPPORTED_PLATFORMS } from "@/lib/constants";
 import { Vexor } from "@/methods";
 import { SupportedVexorPlatform } from "@/types/platforms";
@@ -26,17 +25,26 @@ export const handleTaloWebhook = async (vexor: Vexor, req: any) => {
         }
 
         // Get talo payment status
-        const taloPaymentData = await retrieveTaloPayment(vexor, body.data?.id || body.paymentId);
+        const taloPaymentData = await retrieveTaloOperation(vexor, body.data?.id || body.paymentId);
+
+        let status = taloPaymentData.data.status
+
+        if (status === 'SUCCESS' || status === 'OVERPAID') {
+            status = 'paid'
+        }
+
+        console.log('Talo webhook response:', body);
+        
 
         const response: VexorWebhookResponse = {
             message: body.message,
-            status: taloPaymentData.data.status,
+            status: status,
             platform: SUPPORTED_PLATFORMS.TALO.name as SupportedVexorPlatform,
             identifier: taloPaymentData.data.external_id,
             transmissionId: body.paymentId,
             timeStamp: new Date().toISOString(),
             orderId: taloPaymentData.data.id,
-            eventType: taloPaymentData.data.message,
+            eventType: body.message,
             resource: taloPaymentData,
         }
 

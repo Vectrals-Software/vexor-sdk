@@ -2,7 +2,7 @@ import { generateTaloAccessToken } from "@/actions/authorizations/talo/generate-
 import { SUPPORTED_PLATFORMS } from "@/lib/constants";
 import { Vexor } from "@/methods";
 
-export const retrieveTaloPayment = async (vexor: Vexor, paymentId: string) => {
+export const retrieveTaloOperation = async (vexor: Vexor, operationId: string) => {
 
     // Get the platform credentials
     const platformCredentials = vexor.platforms?.talo
@@ -31,7 +31,7 @@ export const retrieveTaloPayment = async (vexor: Vexor, paymentId: string) => {
     const taloToken = tokenResult.data.token;
 
     // Get talo payment
-    const result = await fetch(`${API_URL}/payments/${paymentId}`, {
+    const result = await fetch(`${API_URL}/payments/${operationId}`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
