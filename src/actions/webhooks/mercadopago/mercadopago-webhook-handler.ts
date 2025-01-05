@@ -67,7 +67,7 @@ export const handleMercadoPagoWebhook = async (vexor: any, req: any) => {
             if (!isValidSignature) {
                 throw new Error('Invalid signature');
             }
-        }        
+        }
 
         let payment_url
 
@@ -97,14 +97,33 @@ export const handleMercadoPagoWebhook = async (vexor: any, req: any) => {
         let responseMessage = 'Event processed';
         let status = 'pending'
 
+        console.log('PAYMENT DATA', payment_data);
+
         switch (body.action) {
+
+
             case 'payment.created':
                 //console.log('Payment created with mercadopago transaction id:', body.data.id);
                 responseMessage = 'Payment created with mercadopago transaction id: ' + body.data.id;
                 identifier = payment_data.metadata?.identifier || payment_data.external_reference || ''
-                if (payment_data.status === 'authorized') {
+
+
+                // =============================
+                // ===💳==== CHECKOUTS ====💳===
+                // =============================
+
+                // Check if the payment is approved
+                if (payment_data.status === 'approved') {
                     status = 'paid'
                 }
+
+
+
+                // =================================
+                // ===🔄==== SUBSCRIPTIONS ====🔄===
+                // =================================
+
+                // Check if the payment is a subscription
                 if (payment_data.point_of_interaction?.type === 'SUBSCRIPTIONS') {
                     // Get payment information
                     const subscription_response = await fetch(`https://api.mercadopago.com/v1/payments/${body.data.id}`, {

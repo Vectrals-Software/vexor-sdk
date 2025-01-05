@@ -37,6 +37,7 @@ const createMercadoPagoCheckout = async (
             metadata: {
                 identifier: identifier
             },
+            external_reference: identifier,
             back_urls: {
                 success: body.options?.successRedirect || 'http://localhost:3000',
                 pending: body.options?.pendingRedirect || 'http://localhost:3000',
