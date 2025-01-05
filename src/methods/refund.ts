@@ -2,6 +2,7 @@ import { VersionChecker } from "@/lib/version-validator";
 import { SupportedVexorPlatform, VexorRefundBody, VexorRefundResponse } from "../methods";
 import { SUPPORTED_PLATFORMS } from "@/lib/constants";
 import refundMercadoPagoPayment from "@/actions/refunds/mercadopago/refund-mercadopago-payment";
+import refundStripePayment from "@/actions/refunds/stripe/refund-stripe-payment";
 
 export const vexorRefund = (vexor: any) => {
     return Object.assign(
@@ -32,18 +33,18 @@ export async function createRefund(vexor: any, platform: SupportedVexorPlatform,
             case SUPPORTED_PLATFORMS.MERCADO_PAGO.name:
                 response = await refundMercadoPagoPayment(vexor, body);
                 break;
-            /*       case SUPPORTED_PLATFORMS.STRIPE.name:
-                    response = await createStripeCheckout(vexor, body);
-                    break;
-                  case SUPPORTED_PLATFORMS.PAYPAL.name:
-                    response = await createPaypalCheckout(vexor, body);
-                    break;
-                  case SUPPORTED_PLATFORMS.TALO.name:
-                    response = await createTaloCheckout(vexor, body);
-                    break;
-                  case SUPPORTED_PLATFORMS.SQUARE.name:
-                    response = await createSquareCheckout(vexor, body);
-                    break; */
+            case SUPPORTED_PLATFORMS.STRIPE.name:
+                response = await refundStripePayment(vexor, body);
+                break;
+            /* case SUPPORTED_PLATFORMS.PAYPAL.name:
+               response = await createPaypalCheckout(vexor, body);
+               break;
+             case SUPPORTED_PLATFORMS.TALO.name:
+               response = await createTaloCheckout(vexor, body);
+               break;
+             case SUPPORTED_PLATFORMS.SQUARE.name:
+               response = await createSquareCheckout(vexor, body);
+               break; */
             default:
                 throw new Error(`Unsupported platform: ${platform}`);
         }

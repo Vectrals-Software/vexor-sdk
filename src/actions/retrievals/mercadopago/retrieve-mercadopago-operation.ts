@@ -1,8 +1,5 @@
 import { SUPPORTED_PLATFORMS } from "../../../lib/constants";
 import { Vexor } from "../../../methods";
-import { VexorPaymentBody } from "../../../types/requests";
-import { VexorPaymentResponse } from "../../../types/responses";
-import { v4 as uuidv4 } from 'uuid';
 
 const retrieveMercadoPagoOperation = async (
     vexor: Vexor,
