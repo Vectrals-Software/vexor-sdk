@@ -74,7 +74,7 @@ export const handleSquareWebhook = async (vexor: Vexor, req: any) => {
 
                 return {
                     message: 'Unhandled event type: ' + body.type,
-                    status: 'error',
+                    status: 'unhandled_event_type',
                     platform: SUPPORTED_PLATFORMS.SQUARE.name as SupportedVexorPlatform,
                     identifier: '',
                     transmissionId: '',
@@ -112,7 +112,7 @@ export const handleSquareWebhook = async (vexor: Vexor, req: any) => {
             orderId: '',
             eventType: '',
             platform: SUPPORTED_PLATFORMS.SQUARE.name as SupportedVexorPlatform,
-            resource: 'null',
+            resource: '',
         } as VexorWebhookResponse
     }
 }
