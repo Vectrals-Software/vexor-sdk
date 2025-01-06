@@ -1,22 +1,27 @@
- // Get Square location id
+// Get Square location id
 
- interface GetSquareLocationProps {
+interface GetSquareLocationProps {
     url: string;
     accessToken: string;
- }
+}
 
 export const getSquareLocation = async ({url, accessToken}: GetSquareLocationProps) => {
+    try {
+        const locationsResponse = await fetch(`${url}/v2/locations`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`
+            }
+        });
 
-    // NOT WORKING FROM CLIENT SIDE: THIS REQUEST NEEDS TO BE MADE FROM THE SERVER SIDE,
-    // BECAUSE OF SQUARES' CORS POLICY
-    const locationsResponse = await fetch(`${url}/v2/locations`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${accessToken}`
+        if (!locationsResponse?.ok) {
+            throw new Error(`HTTP error! status: ${locationsResponse.status} \nMake sure the request is made from the server not from the client side`);
         }
 
-    }).then(res => res.json());
-
-    return locationsResponse;
- }
+        return await locationsResponse.json();
+    } catch (error) {
+        console.error('Error fetching Square location:', error);
+        throw error;
+    }
+}
