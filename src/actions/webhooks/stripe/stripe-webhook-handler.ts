@@ -1,12 +1,13 @@
-import { isValidMercadoPagoSignature } from "@/actions/authorizations/mercadopago/verify-mercadopagp-signature";
 import { SUPPORTED_PLATFORMS } from "@/lib/constants";
 import { Vexor } from "@/methods";
-import { OpenSourceConfig } from "@/types/configuration";
 import { VexorWebhookResponse } from "@/types/responses";
-import crypto from "crypto";
 import Stripe from "stripe";
 
-async function getSubscriptionWithRetry(stripe: Stripe, subscriptionId: string, maxRetries = 10): Promise<Stripe.Subscription> {
+async function getSubscriptionWithRetry(
+    stripe: Stripe,
+    subscriptionId: string,
+    maxRetries = 10
+): Promise<Stripe.Subscription> {
     for (let i = 0; i < maxRetries; i++) {
         const subscription = await stripe.subscriptions.retrieve(subscriptionId);
         if (subscription.metadata?.identifier) {
@@ -46,7 +47,7 @@ export const handleStripeWebhook = async (vexor: Vexor, req: any) => {
         const platformCredentials = vexor.platforms?.stripe
 
         if (!platformCredentials) {
-          //  throw new Error('Stripe credentials not found');
+            //  throw new Error('Stripe credentials not found');
         }
 
         const stripePublicKey = platformCredentials?.public_key
@@ -61,7 +62,7 @@ export const handleStripeWebhook = async (vexor: Vexor, req: any) => {
             throw new Error('Stripe secret key not found');
         }
 
-        if (!stripeWebhookSecrets?.length ) {
+        if (!stripeWebhookSecrets?.length) {
             throw new Error('Stripe webhook secrets not found');
         }
 
@@ -74,18 +75,18 @@ export const handleStripeWebhook = async (vexor: Vexor, req: any) => {
             typescript: true,
         });
 
-       // Try each webhook secret until one works or all fail (you can have multiple webhooks secrets in Stripe for example: one for your account and one for connected -marketplace- accounts)
+        // Try each webhook secret until one works or all fail (you can have multiple webhooks secrets in Stripe for example: one for your account and one for connected -marketplace- accounts)
         for (const webhookSecret of stripeWebhookSecrets) {
             try {
                 event = stripe.webhooks.constructEvent(
-                request,
-                signature,
-                webhookSecret
-            );
-            break; // If we get here, we found a working webhook secret
-        } catch (err) {
-            console.log('Webhook signature verification failed with a secret, trying next one if available');
-            continue;
+                    request,
+                    signature,
+                    webhookSecret
+                );
+                break; // If we get here, we found a working webhook secret
+            } catch (err) {
+                console.log('Webhook signature verification failed with a secret, trying next one if available');
+                continue;
             }
         }
 
@@ -119,32 +120,32 @@ export const handleStripeWebhook = async (vexor: Vexor, req: any) => {
                 responseMessage = 'Payment created with order id: ' + body.data.object.metadata.identifier;
                 status = body.data.object.payment_status;
                 identifier = body.data.object.metadata.identifier;
-    
+
                 if (isSubscriptionCheckout) {
                     const subscriptionId = body.data.object.subscription;
-    
-    
+
+
                     // Update the Subscription with the metadata from the Checkout Session
                     const subscription = await stripe.subscriptions.update(subscriptionId, {
                         metadata: {
                             identifier: body.data.object.metadata.identifier
                         }
                     });
-    
+
                     console.log('Updated subscription:', subscription);
-                    
-    
+
+
                     responseMessage = 'Subscription created and updated with identifier: ' + body.data.object.metadata.identifier;
-    
+
                     identifier = body.data.object.metadata.identifier;
-    
+
                 }
-    
+
                 break;
             case 'invoice.payment_succeeded':
                 console.log('Payment succeeded with invoice id:', body.data.object.metadata.identifier);
                 identifier = body.data.object.metadata.identifier;
-    
+
                 responseMessage = 'Payment succeeded with invoice id: ' + body.data.object.metadata.identifier;
                 status = body.data.object.payment_status;
                 if (isSubscriptionCheckout) {

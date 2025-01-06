@@ -1,4 +1,4 @@
-import { isValidMercadoPagoSignature } from "@/actions/authorizations/mercadopago/verify-mercadopagp-signature";
+import { isValidMercadoPagoSignature } from "@/actions/authorizations/mercadopago/verify-mercadopago-signature";
 import { SUPPORTED_PLATFORMS } from "@/lib/constants";
 import { VexorWebhookResponse } from "@/types/responses";
 import crypto from "crypto";

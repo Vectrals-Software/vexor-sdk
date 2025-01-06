@@ -33,6 +33,7 @@ export interface OpenSourceConfig {
       access_token: string;
       application_id: string;
       webhooks_url?: string;
+      webhook_signature_key?: string;
       sandbox?: boolean;
     }
 }
