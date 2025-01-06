@@ -33,9 +33,6 @@ export const handleTaloWebhook = async (vexor: Vexor, req: any) => {
             status = 'paid'
         }
 
-        console.log('Talo webhook response:', body);
-        
-
         const response: VexorWebhookResponse = {
             message: body.message,
             status: status,

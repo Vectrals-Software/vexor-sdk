@@ -3,6 +3,7 @@ import { SupportedVexorPlatform, VexorRefundBody, VexorRefundResponse } from "..
 import { SUPPORTED_PLATFORMS } from "@/lib/constants";
 import refundMercadoPagoPayment from "@/actions/refunds/mercadopago/refund-mercadopago-payment";
 import refundStripePayment from "@/actions/refunds/stripe/refund-stripe-payment";
+import refundPaypalPayment from "@/actions/refunds/paypal/refund-paypal-payment";
 
 export const vexorRefund = (vexor: any) => {
     return Object.assign(
@@ -36,10 +37,10 @@ export async function createRefund(vexor: any, platform: SupportedVexorPlatform,
             case SUPPORTED_PLATFORMS.STRIPE.name:
                 response = await refundStripePayment(vexor, body);
                 break;
-            /* case SUPPORTED_PLATFORMS.PAYPAL.name:
-               response = await createPaypalCheckout(vexor, body);
+            case SUPPORTED_PLATFORMS.PAYPAL.name:
+               response = await refundPaypalPayment(vexor, body);
                break;
-             case SUPPORTED_PLATFORMS.TALO.name:
+           /*  case SUPPORTED_PLATFORMS.TALO.name:
                response = await createTaloCheckout(vexor, body);
                break;
              case SUPPORTED_PLATFORMS.SQUARE.name:
