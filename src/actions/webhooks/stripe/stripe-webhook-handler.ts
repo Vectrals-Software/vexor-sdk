@@ -1,9 +1,6 @@
-import { isValidMercadoPagoSignature } from "@/actions/authorizations/mercadopago/verify-mercadopagp-signature";
 import { SUPPORTED_PLATFORMS } from "@/lib/constants";
 import { Vexor } from "@/methods";
-import { OpenSourceConfig } from "@/types/configuration";
 import { VexorWebhookResponse } from "@/types/responses";
-import crypto from "crypto";
 import Stripe from "stripe";
 
 async function getSubscriptionWithRetry(stripe: Stripe, subscriptionId: string, maxRetries = 10): Promise<Stripe.Subscription> {
