@@ -1,6 +1,6 @@
 {
   "name": "vexor",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Core SDK for Vexor payments",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -35,6 +35,7 @@
   "dependencies": {
     "buffer-crc32": "^1.0.0",
     "crypto": "^1.0.1",
+    "mercadopago": "^2.2.0",
     "stripe": "^17.5.0",
     "uuid": "^11.0.3"
   }

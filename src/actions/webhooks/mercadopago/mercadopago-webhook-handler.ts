@@ -101,7 +101,6 @@ export const handleMercadoPagoWebhook = async (vexor: any, req: any) => {
 
         switch (body.action) {
 
-
             case 'payment.created':
                 //console.log('Payment created with mercadopago transaction id:', body.data.id);
                 responseMessage = 'Payment created with mercadopago transaction id: ' + body.data.id;
@@ -116,7 +115,6 @@ export const handleMercadoPagoWebhook = async (vexor: any, req: any) => {
                 if (payment_data.status === 'approved') {
                     status = 'paid'
                 }
-
 
 
                 // =================================
