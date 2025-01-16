@@ -12,8 +12,10 @@ export default defineConfig({
   outDir: 'dist',
   target: 'node16',
   external: [
-    'stripe',
-    'crypto',
-    'uuid'
+    "buffer-crc32",
+    "crypto",
+    "mercadopago",
+    "stripe",
+    "uuid"
   ]
 }); 
