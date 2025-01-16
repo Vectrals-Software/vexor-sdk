@@ -1,13 +1,9 @@
 import createMercadoPagoSubscription from "./mercadopago/create-mercadopago-subscription";
-import createStripeCheckout from "./stripe/create-stripe-checkout";
-import createPaypalCheckout from "./paypal/create-paypal-checkout";
-import createTaloCheckout from "./talo/create-talo-checkout";
-import createSquareCheckout from "./square/create-square-checkout";
+import createPaypalSubscription from "./paypal/create-paypal-subscription";
+import createStripeSubscription from "./stripe/create-stripe-subscription";
 
 export {
-    createMercadoPagoSubscription,
-    createStripeCheckout,
-    createPaypalCheckout,
-    createTaloCheckout,
-    createSquareCheckout,
-}
+    createMercadoPagoSubscription, 
+    createPaypalSubscription, 
+    createStripeSubscription
+};

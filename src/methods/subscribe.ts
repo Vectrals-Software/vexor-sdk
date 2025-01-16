@@ -1,4 +1,4 @@
-import { createMercadoPagoSubscription } from "@/actions/subscriptions";
+import { createMercadoPagoSubscription, createPaypalSubscription } from "@/actions/subscriptions";
 import { SUPPORTED_PLATFORMS } from "@/lib/constants";
 import { VersionChecker } from "@/lib/version-validator";
 import { SupportedVexorPlatform } from "@/types/platforms";
@@ -39,13 +39,7 @@ export async function createSubscription(vexor: any, platform: SupportedVexorPla
                 response = await createMercadoPagoSubscription(vexor, body);
                 break;
             case SUPPORTED_PLATFORMS.PAYPAL.name:
-                response = await createMercadoPagoSubscription(vexor, body);
-                break;
-            case SUPPORTED_PLATFORMS.TALO.name:
-                response = await createMercadoPagoSubscription(vexor, body);
-                break;
-            case SUPPORTED_PLATFORMS.SQUARE.name:
-                response = await createMercadoPagoSubscription(vexor, body);
+                response = await createPaypalSubscription(vexor, body);
                 break;
             default:
                 throw new Error(`Unsupported platform: ${platform}`);

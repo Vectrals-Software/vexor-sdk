@@ -4,7 +4,7 @@ import { VexorPaymentResponse } from "../../../types/responses";
 import { v4 as uuidv4 } from 'uuid';
 import Stripe from 'stripe';
 
-const createStripeCheckout = async (
+const createStripeSubscription = async (
     vexor: Vexor,
     body: VexorPaymentBody
 ) => {
@@ -72,4 +72,4 @@ const createStripeCheckout = async (
     }
 }
 
-export default createStripeCheckout;   
+export default createStripeSubscription;   
