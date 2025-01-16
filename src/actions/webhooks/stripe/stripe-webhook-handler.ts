@@ -116,7 +116,7 @@ export const handleStripeWebhook = async (vexor: Vexor, req: any) => {
 
         switch (event.type) {
             case 'checkout.session.completed':
-                console.log('Payment created with order id:', body.data.object.metadata.identifier);
+                 // console.log('Payment created with order id:', body.data.object.metadata.identifier);
                 responseMessage = 'Payment created with order id: ' + body.data.object.metadata.identifier;
                 status = body.data.object.payment_status;
                 identifier = body.data.object.metadata.identifier;
@@ -169,7 +169,7 @@ export const handleStripeWebhook = async (vexor: Vexor, req: any) => {
                         responseMessage = 'Subscription payment processed, but metadata not yet available';
                     }
                 }
-                console.log('Payment succeeded with invoice id:', body.data.object.metadata.identifier);
+                // console.log('Payment succeeded with invoice id:', body.data.object.metadata.identifier);
                 break;
             case 'account.updated':
                 // console.log('Account updated:', body.data.object);
