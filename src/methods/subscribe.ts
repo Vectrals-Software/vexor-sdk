@@ -1,4 +1,4 @@
-import { createMercadoPagoSubscription, createPaypalSubscription } from "@/actions/subscriptions";
+import { createMercadoPagoSubscription, createPaypalSubscription, createStripeSubscription } from "@/actions/subscriptions";
 import { SUPPORTED_PLATFORMS } from "@/lib/constants";
 import { VersionChecker } from "@/lib/version-validator";
 import { SupportedVexorPlatform } from "@/types/platforms";
@@ -36,7 +36,7 @@ export async function createSubscription(vexor: any, platform: SupportedVexorPla
                 response = await createMercadoPagoSubscription(vexor, body);
                 break;
             case SUPPORTED_PLATFORMS.STRIPE.name:
-                response = await createMercadoPagoSubscription(vexor, body);
+                response = await createStripeSubscription(vexor, body);
                 break;
             case SUPPORTED_PLATFORMS.PAYPAL.name:
                 response = await createPaypalSubscription(vexor, body);

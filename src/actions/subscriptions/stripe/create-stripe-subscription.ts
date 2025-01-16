@@ -1,12 +1,13 @@
-import { VexorPaymentBody } from "../../../types/requests";
-import { Vexor } from "../../../methods";
-import { VexorPaymentResponse } from "../../../types/responses";
-import { v4 as uuidv4 } from 'uuid';
+import { SUPPORTED_PLATFORMS } from "@/lib/constants";
+import { formatInterval } from "@/lib/format-interval";
+import { Vexor } from "@/methods";
+import { VexorSubscriptionBody } from "@/types/requests";
 import Stripe from 'stripe';
+import { v4 as uuidv4 } from 'uuid';
 
 const createStripeSubscription = async (
     vexor: Vexor,
-    body: VexorPaymentBody
+    body: VexorSubscriptionBody
 ) => {
 
     const identifier = uuidv4();
@@ -27,47 +28,51 @@ const createStripeSubscription = async (
         }
 
         const stripe = new Stripe(stripeSecretKey);
+        const formattedInterval = formatInterval(body.interval, SUPPORTED_PLATFORMS.STRIPE.name);
 
-        const lineItems = body.items.map(item => ({
-            price_data: {
-                currency: body.options?.currency || 'usd',
-                product_data: {
-                    name: item.title,
-                },
-                unit_amount: Math.round(item.unit_price * 100),
-            },
-            quantity: item.quantity,
-        }));
-
-        const checkoutSessionBody: Stripe.Checkout.SessionCreateParams = {
+        const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
-            line_items: lineItems,
-            mode: 'payment',
+            mode: 'subscription',
+            billing_address_collection: 'auto',
+            customer_email: body.customer?.email,
+            success_url: body.successRedirect,
+            cancel_url: body.failureRedirect ?? `${body.successRedirect}?canceled=true`,
+            line_items: [
+                {
+                    price_data: {
+                        currency: body.currency,
+                        product_data: {
+                            name: body.name,
+                            description: body.description ?? undefined,
+                        },
+                        unit_amount: body.price * 100,
+                        recurring: { 
+                            interval: formattedInterval as Stripe.Checkout.SessionCreateParams.LineItem.PriceData.Recurring.Interval
+                        },
+                    },
+                    quantity: 1,
+                }
+            ],
             metadata: {
                 identifier: identifier
             },
-            payment_intent_data: {
-                metadata: {
-                    identifier: identifier
-                },
-            },
-            success_url: body.options?.successRedirect || 'http://localhost:3000/success',
-            cancel_url: body.options?.failureRedirect || 'http://localhost:3000/failure',
-        };
-
-
-        const result = await stripe.checkout.sessions.create(checkoutSessionBody);
+        }) ;
 
 
         return {
-            message: 'Payment checkout created',
-            payment_url: result.url as string,
-            raw: { ...result },
+            message: 'Subscription checkout created',
+            payment_url: session.url as string,
+            raw: { ...session },
             identifier
         }
 
-    } catch (error) {
-        console.error('Error creating Stripe checkout', error);
+    } catch (error: any) {
+        console.error(error);
+
+        if (error instanceof Stripe.errors.StripeError) {
+            return { payment_url: '', raw: JSON.stringify(error), identifier: error.type,  message: error.message };
+        }
+
         throw error;
     }
 }

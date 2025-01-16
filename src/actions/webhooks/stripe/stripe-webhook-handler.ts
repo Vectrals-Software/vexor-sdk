@@ -132,7 +132,7 @@ export const handleStripeWebhook = async (vexor: Vexor, req: any) => {
                         }
                     });
 
-                    console.log('Updated subscription:', subscription);
+                   // console.log('Updated subscription:', subscription);
 
 
                     responseMessage = 'Subscription created and updated with identifier: ' + body.data.object.metadata.identifier;
@@ -143,18 +143,24 @@ export const handleStripeWebhook = async (vexor: Vexor, req: any) => {
 
                 break;
             case 'invoice.payment_succeeded':
-                console.log('Payment succeeded with invoice id:', body.data.object.metadata.identifier);
+         
                 identifier = body.data.object.metadata.identifier;
 
                 responseMessage = 'Payment succeeded with invoice id: ' + body.data.object.metadata.identifier;
-                status = body.data.object.payment_status;
+                status = body.data.object.payment_status || body.data.object.status;
                 if (isSubscriptionCheckout) {
                     const subscriptionId = body.data.object.subscription;
                     try {
                         const subscription = await getSubscriptionWithRetry(stripe, subscriptionId);
-                        console.log('Subscription:', subscription);
+
+                        //console.log('Subscription:', subscription);
+
                         responseMessage = 'Subscription payment succeeded and updated with id: ' + subscription.metadata.identifier;
+
+                        // Get the identifier from the subscription
                         body.data.object.metadata.identifier = subscription.metadata.identifier;
+                    
+                        // Store the identifier in the response
                         identifier = subscription.metadata.identifier;
                     } catch (error) {
                         console.error('Failed to get subscription metadata:', error);
@@ -163,9 +169,10 @@ export const handleStripeWebhook = async (vexor: Vexor, req: any) => {
                         responseMessage = 'Subscription payment processed, but metadata not yet available';
                     }
                 }
+                console.log('Payment succeeded with invoice id:', body.data.object.metadata.identifier);
                 break;
             case 'account.updated':
-                console.log('Account updated:', body.data.object);
+                // console.log('Account updated:', body.data.object);
                 status = 'success';
                 responseMessage = 'Account updated with id: ' + body.data.object.metadata.identifier;
                 identifier = body.data.object.metadata.identifier;
